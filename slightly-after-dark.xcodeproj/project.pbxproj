@@ -1,0 +1,321 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34D19037871003E00EA /* Cocoa.framework */; };
+		C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34F19037871003E00EA /* ScreenSaver.framework */; };
+		C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC35819037871003E00EA /* InfoPlist.strings */; };
+		C1FFC35E19037871003E00EA /* slightly_after_darkView.m in Sources */ = {isa = PBXBuildFile; fileRef = C1FFC35D19037871003E00EA /* slightly_after_darkView.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		C1FFC34A19037871003E00EA /* slightly-after-dark.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "slightly-after-dark.saver"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1FFC34D19037871003E00EA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		C1FFC34F19037871003E00EA /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
+		C1FFC35219037871003E00EA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		C1FFC35319037871003E00EA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		C1FFC35419037871003E00EA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		C1FFC35719037871003E00EA /* slightly-after-dark-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "slightly-after-dark-Info.plist"; sourceTree = "<group>"; };
+		C1FFC35919037871003E00EA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C1FFC35B19037871003E00EA /* slightly-after-dark-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "slightly-after-dark-Prefix.pch"; sourceTree = "<group>"; };
+		C1FFC35C19037871003E00EA /* slightly_after_darkView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = slightly_after_darkView.h; sourceTree = "<group>"; };
+		C1FFC35D19037871003E00EA /* slightly_after_darkView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = slightly_after_darkView.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C1FFC34519037871003E00EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */,
+				C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C1FFC33F19037871003E00EA = {
+			isa = PBXGroup;
+			children = (
+				C1FFC35519037871003E00EA /* slightly-after-dark */,
+				C1FFC34C19037871003E00EA /* Frameworks */,
+				C1FFC34B19037871003E00EA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C1FFC34B19037871003E00EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFC34A19037871003E00EA /* slightly-after-dark.saver */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C1FFC34C19037871003E00EA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFC34D19037871003E00EA /* Cocoa.framework */,
+				C1FFC34F19037871003E00EA /* ScreenSaver.framework */,
+				C1FFC35119037871003E00EA /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C1FFC35119037871003E00EA /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFC35219037871003E00EA /* AppKit.framework */,
+				C1FFC35319037871003E00EA /* CoreData.framework */,
+				C1FFC35419037871003E00EA /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		C1FFC35519037871003E00EA /* slightly-after-dark */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFC35C19037871003E00EA /* slightly_after_darkView.h */,
+				C1FFC35D19037871003E00EA /* slightly_after_darkView.m */,
+				C1FFC35619037871003E00EA /* Supporting Files */,
+			);
+			path = "slightly-after-dark";
+			sourceTree = "<group>";
+		};
+		C1FFC35619037871003E00EA /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFC35719037871003E00EA /* slightly-after-dark-Info.plist */,
+				C1FFC35819037871003E00EA /* InfoPlist.strings */,
+				C1FFC35B19037871003E00EA /* slightly-after-dark-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		C1FFC34619037871003E00EA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		C1FFC34919037871003E00EA /* slightly-after-dark */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1FFC36119037871003E00EA /* Build configuration list for PBXNativeTarget "slightly-after-dark" */;
+			buildPhases = (
+				C1FFC34419037871003E00EA /* Sources */,
+				C1FFC34519037871003E00EA /* Frameworks */,
+				C1FFC34619037871003E00EA /* Headers */,
+				C1FFC34719037871003E00EA /* Resources */,
+				C1FFC34819037871003E00EA /* Rez */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "slightly-after-dark";
+			productName = "slightly-after-dark";
+			productReference = C1FFC34A19037871003E00EA /* slightly-after-dark.saver */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C1FFC34019037871003E00EA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = httpster;
+			};
+			buildConfigurationList = C1FFC34319037871003E00EA /* Build configuration list for PBXProject "slightly-after-dark" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = C1FFC33F19037871003E00EA;
+			productRefGroup = C1FFC34B19037871003E00EA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C1FFC34919037871003E00EA /* slightly-after-dark */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C1FFC34719037871003E00EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		C1FFC34819037871003E00EA /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C1FFC34419037871003E00EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1FFC35E19037871003E00EA /* slightly_after_darkView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		C1FFC35819037871003E00EA /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C1FFC35919037871003E00EA /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		C1FFC35F19037871003E00EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C1FFC36019037871003E00EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C1FFC36219037871003E00EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "slightly-after-dark/slightly-after-dark-Prefix.pch";
+				INFOPLIST_FILE = "slightly-after-dark/slightly-after-dark-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = saver;
+			};
+			name = Debug;
+		};
+		C1FFC36319037871003E00EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "slightly-after-dark/slightly-after-dark-Prefix.pch";
+				INFOPLIST_FILE = "slightly-after-dark/slightly-after-dark-Info.plist";
+				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = saver;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C1FFC34319037871003E00EA /* Build configuration list for PBXProject "slightly-after-dark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1FFC35F19037871003E00EA /* Debug */,
+				C1FFC36019037871003E00EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1FFC36119037871003E00EA /* Build configuration list for PBXNativeTarget "slightly-after-dark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1FFC36219037871003E00EA /* Debug */,
+				C1FFC36319037871003E00EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C1FFC34019037871003E00EA /* Project object */;
+}
