@@ -11,6 +11,7 @@
 		C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34F19037871003E00EA /* ScreenSaver.framework */; };
 		C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC35819037871003E00EA /* InfoPlist.strings */; };
 		C1FFC35E19037871003E00EA /* slightly_after_darkView.m in Sources */ = {isa = PBXBuildFile; fileRef = C1FFC35D19037871003E00EA /* slightly_after_darkView.m */; };
+		C1FFC3651904A728003E00EA /* optionsPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC3641904A728003E00EA /* optionsPanel.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		C1FFC35B19037871003E00EA /* slightly-after-dark-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "slightly-after-dark-Prefix.pch"; sourceTree = "<group>"; };
 		C1FFC35C19037871003E00EA /* slightly_after_darkView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = slightly_after_darkView.h; sourceTree = "<group>"; };
 		C1FFC35D19037871003E00EA /* slightly_after_darkView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = slightly_after_darkView.m; sourceTree = "<group>"; };
+		C1FFC3641904A728003E00EA /* optionsPanel.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = optionsPanel.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 				C1FFC35C19037871003E00EA /* slightly_after_darkView.h */,
 				C1FFC35D19037871003E00EA /* slightly_after_darkView.m */,
 				C1FFC35619037871003E00EA /* Supporting Files */,
+				C1FFC3641904A728003E00EA /* optionsPanel.xib */,
 			);
 			path = "slightly-after-dark";
 			sourceTree = "<group>";
@@ -161,6 +164,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */,
+				C1FFC3651904A728003E00EA /* optionsPanel.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
