@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C1DA2EA71905BC1B007124F0 /* after-dark-css in Resources */ = {isa = PBXBuildFile; fileRef = C1DA2EA61905BC1B007124F0 /* after-dark-css */; };
 		C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34D19037871003E00EA /* Cocoa.framework */; };
 		C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34F19037871003E00EA /* ScreenSaver.framework */; };
 		C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC35819037871003E00EA /* InfoPlist.strings */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C1DA2EA61905BC1B007124F0 /* after-dark-css */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "after-dark-css"; sourceTree = "<group>"; };
 		C1FFC34A19037871003E00EA /* slightly-after-dark.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "slightly-after-dark.saver"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1FFC34D19037871003E00EA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		C1FFC34F19037871003E00EA /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
@@ -45,6 +47,7 @@
 		C1FFC33F19037871003E00EA = {
 			isa = PBXGroup;
 			children = (
+				C1DA2EA61905BC1B007124F0 /* after-dark-css */,
 				C1FFC35519037871003E00EA /* slightly-after-dark */,
 				C1FFC34C19037871003E00EA /* Frameworks */,
 				C1FFC34B19037871003E00EA /* Products */,
@@ -163,6 +166,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1DA2EA71905BC1B007124F0 /* after-dark-css in Resources */,
 				C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */,
 				C1FFC3651904A728003E00EA /* optionsPanel.xib in Resources */,
 			);
@@ -318,6 +322,7 @@
 				C1FFC36319037871003E00EA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -10,25 +10,14 @@
 
 #import "slightly_after_darkView.h"
 
-// ------------------------------------------------------------------------------------
-
-typedef enum {
-    SAVER_TOASTERS,
-    SAVER_SIZE
-} ScreenSaverType;
-
-// ------------------------------------------------------------------------------------
-
 @interface slightly_after_darkView()
 
-@property (strong, nonatomic) IBOutlet  NSComboBox  *comboBox;
-@property (strong, nonatomic)           NSArray     *comboBoxData;
-@property (strong, nonatomic) IBOutlet  NSPanel     *optionsPanel;
-@property (strong, nonatomic)           WebView     *webView;
+@property (strong, nonatomic) IBOutlet NSComboBox   *comboBox;
+@property (strong, nonatomic) IBOutlet NSPanel      *optionsPanel;
+@property (strong, nonatomic)          NSArray      *savers;
+@property (strong, nonatomic)          WebView      *webView;
 
 @end
-
-// ------------------------------------------------------------------------------------
 
 @implementation slightly_after_darkView
 
@@ -40,73 +29,131 @@ typedef enum {
 {
     self = [super initWithFrame:frame isPreview:isPreview];
     if (self) {
+
+        // cool screensaverview stuff
         [self setAnimationTimeInterval:1/30.0];
-//
-//        NSDictionary *appDefaults = [NSDictionary dictionaryWithObject:SAVER_TOASTERS
-//                                                                forKey:@"ScreenSaver"];
-//        [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
-        _comboBoxData = @[@"Flying Toasters", @"Fish", @"Globe", @"Hard Rain",
-                          @"Bouncing Ball", @"Warp", @"Messages", @"Messages 2",
-                          @"Fade Out", @"Logo", @"Rainstorm", @"Spotlight"];
+        
+        //savers
+        _savers = [NSArray arrayWithObjects:
+                   @{
+                     @"title" : @"Flying Toasters",
+                     @"filename" : @"flying-toasters"
+                     },
+                   @{
+                     @"title" : @"Fish",
+                     @"filename" : @"fish"
+                     },
+                   @{
+                     @"title" : @"Globe",
+                     @"filename" : @"globe"
+                     },
+                   @{
+                     @"title" : @"Hard Rain",
+                     @"filename" : @"hard-rain"
+                     },
+                   @{
+                     @"title" : @"Bouncing Ball",
+                     @"filename" : @"bouncing-ball"
+                     },
+                   @{
+                     @"title" : @"Warp",
+                     @"filename" : @"warp"
+                     },
+                   @{
+                     @"title" : @"Messages",
+                     @"filename" : @"messages"
+                     },
+                   @{
+                     @"title" : @"Messages 2",
+                     @"filename" : @"messages2"
+                     },
+                   @{
+                     @"title" : @"Fade Out",
+                     @"filename" : @"fade-out"
+                     },
+                   @{
+                     @"title" : @"Logo",
+                     @"filename" : @"logo"
+                     },
+                   @{
+                     @"title" : @"Rainstorm",
+                     @"filename" : @"rainstorm"
+                     },
+                   @{
+                     @"title" : @"Spotlight",
+                     @"filename" : @"spotlight"
+                     }
+        , nil];
+        
+        //defaults
+        ScreenSaverDefaults *defaults = [ScreenSaverDefaults defaultsForModuleWithName:@"com.httpster.slightly-after-dark"];
+        [defaults registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
+                                    [NSNumber numberWithInt:1], @"ScreenSaver",
+                                    nil]];
+        NSInteger index = [defaults integerForKey:@"ScreenSaver"] > 0 ? [defaults integerForKey:@"ScreenSaver"] : 1;
+        
+        //webview
         _webView = [[WebView alloc] initWithFrame:[self bounds]];
+        [_webView setFrameLoadDelegate:self];
+        [_webView setShouldUpdateWhileOffscreen:YES];
+        [_webView setPolicyDelegate:self];
+        [_webView setUIDelegate:self];
+        [_webView setEditingDelegate:self];
+        [_webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+        [_webView setAutoresizesSubviews:YES];
+        [_webView setDrawsBackground:NO];
+        [self addSubview:_webView];
+        
+        NSColor *color = [NSColor colorWithCalibratedWhite:0.0 alpha:1.0];
+        [[_webView layer] setBackgroundColor:color.CGColor];
+        
+        //set our saver
+        [self setScreenSaverForIndex:index];
+        
+        //set our selected saver in options TODO: make me work
+        [_comboBox selectItemAtIndex:index];
+        [_comboBox setObjectValue: [_savers objectAtIndex:index]];
     }
     return self;
 }
 
 // ------------------------------------------------------------------------------------
-#pragma mark - NSComboBoxDataSource methods
+#pragma mark - NSComboBoxDataSource delegate methods
 // ------------------------------------------------------------------------------------
 
 - (NSInteger)numberOfItemsInComboBox:(NSComboBox *)aComboBox
 {
-    return _comboBoxData.count;
+    return _savers.count;
 }
 
 - (id)comboBox:(NSComboBox *)aComboBox objectValueForItemAtIndex:(NSInteger)index
 {
-    return _comboBoxData[index];
-}
-
-#pragma mark - screen saver helpers
-
-- (void)setScreenSaverTo:(ScreenSaverType)screenSaver
-{
-    NSString *frameURL = nil;
-    switch (screenSaver) {
-        case SAVER_TOASTERS:
-            frameURL = @"http://bryanbraun.github.io/after-dark-css/all/flying-toasters.html";
-        break;
-        default:
-            // ..
-        break;
-    }
-    [_webView setMainFrameURL:frameURL];
+    return [_savers[index] objectForKey:@"title"];
 }
 
 // ------------------------------------------------------------------------------------
-#pragma mark - screen saver methods
+#pragma mark - screen saver helper
+// ------------------------------------------------------------------------------------
+
+- (void)setScreenSaverForIndex:(NSInteger)index
+{
+    NSURL *mainWebPageURL = [[NSBundle bundleForClass:[self class]] URLForResource:[_savers[index] objectForKey:@"filename"]
+                                                                     withExtension:@"html"
+                                                                      subdirectory:@"after-dark-css/all"];
+    
+    [[_webView mainFrame] loadRequest:[NSURLRequest requestWithURL:mainWebPageURL]];
+
+    [self stopAnimation];
+    [self startAnimation];
+}
+
+// ------------------------------------------------------------------------------------
+#pragma mark - screen saver view
 // ------------------------------------------------------------------------------------
 
 - (void)startAnimation
 {
     [super startAnimation];
-    
-    [_webView setFrameLoadDelegate:self];
-    [_webView setShouldUpdateWhileOffscreen:YES];
-    [_webView setPolicyDelegate:self];
-    [_webView setUIDelegate:self];
-    [_webView setEditingDelegate:self];
-    [_webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-    [_webView setAutoresizesSubviews:YES];
-    [_webView setDrawsBackground:NO];
-    [self addSubview:_webView];
-    
-    NSColor *color = [NSColor colorWithCalibratedWhite:0.0 alpha:1.0];
-    [[_webView layer] setBackgroundColor:color.CGColor];
-    
-//    ScreenSaverType defaultScreenSaver = (ScreenSaverType) [[NSUserDefaults standardUserDefaults] objectForKey:@"ScreenSaver"];
-
-    [self setScreenSaverTo:SAVER_TOASTERS];
 }
 
 - (void)stopAnimation
@@ -143,6 +190,18 @@ typedef enum {
 
 - (IBAction)performCancel:(id)sender
 {
+    [NSApp endSheet:_optionsPanel];
+}
+
+- (IBAction)performDone:(id)sender
+{
+    NSInteger index = [_comboBox indexOfSelectedItem];
+    
+    ScreenSaverDefaults *defaults = [ScreenSaverDefaults defaultsForModuleWithName:@"com.httpster.slightly-after-dark"];
+    [defaults setInteger:index forKey:@"ScreenSaver"];
+    [defaults synchronize];
+    
+    [self setScreenSaverForIndex:index];
     [NSApp endSheet:_optionsPanel];
 }
 

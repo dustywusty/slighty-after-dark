@@ -8,6 +8,6 @@
 
 #import <ScreenSaver/ScreenSaver.h>
 
-@interface slightly_after_darkView : ScreenSaverView
+@interface slightly_after_darkView : ScreenSaverView <NSComboBoxDataSource>
 
 @end
