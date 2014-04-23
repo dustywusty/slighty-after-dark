@@ -13,12 +13,13 @@ slighty-after-dark
 ### Todo
 
 * I tossed this together on Saturday night
-* I need to finish the configuration panel
+* ~~I need to finish the configuration panel~~
 * ~~I need to setup after-dark-css as a git submodule~~
 * ~~I need to add build steps to pull in screensavers, from the submodule, with each build~~
-* I need to make the savers load from local resources
+* ~~I need to make the savers load from local resources~~
 * I need to clean up the code
 * I need to buy bryanbraun a beer
+* Pull saver list from a plist
 
 
 
