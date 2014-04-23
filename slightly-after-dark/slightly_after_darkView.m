@@ -90,7 +90,7 @@
         [defaults registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
                                     [NSNumber numberWithInt:1], @"ScreenSaver",
                                     nil]];
-        NSInteger index = [defaults integerForKey:@"ScreenSaver"] > 0 ? [defaults integerForKey:@"ScreenSaver"] : 1;
+        NSInteger index = [defaults integerForKey:@"ScreenSaver"] >= 0 ? [defaults integerForKey:@"ScreenSaver"] : 0;
         
         //webview
         _webView = [[WebView alloc] initWithFrame:[self bounds]];
