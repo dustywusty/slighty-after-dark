@@ -11,13 +11,13 @@
 		C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34D19037871003E00EA /* Cocoa.framework */; };
 		C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34F19037871003E00EA /* ScreenSaver.framework */; };
 		C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC35819037871003E00EA /* InfoPlist.strings */; };
-		C1FFC35E19037871003E00EA /* slightly_after_darkView.m in Sources */ = {isa = PBXBuildFile; fileRef = C1FFC35D19037871003E00EA /* slightly_after_darkView.m */; };
-		C1FFC3651904A728003E00EA /* optionsPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC3641904A728003E00EA /* optionsPanel.xib */; };
+		C1FFC35E19037871003E00EA /* SADScreenSaverView.m in Sources */ = {isa = PBXBuildFile; fileRef = C1FFC35D19037871003E00EA /* SADScreenSaverView.m */; };
+		D500000126A1000000000001 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D500000226A1000000000001 /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		C1DA2EA61905BC1B007124F0 /* after-dark-css */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "after-dark-css"; sourceTree = "<group>"; };
-		C1FFC34A19037871003E00EA /* slightly-after-dark.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "slightly-after-dark.saver"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1FFC34A19037871003E00EA /* Slightly After Dark.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Slightly After Dark.saver"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1FFC34D19037871003E00EA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		C1FFC34F19037871003E00EA /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
 		C1FFC35219037871003E00EA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -25,10 +25,9 @@
 		C1FFC35419037871003E00EA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		C1FFC35719037871003E00EA /* slightly-after-dark-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "slightly-after-dark-Info.plist"; sourceTree = "<group>"; };
 		C1FFC35919037871003E00EA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		C1FFC35B19037871003E00EA /* slightly-after-dark-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "slightly-after-dark-Prefix.pch"; sourceTree = "<group>"; };
-		C1FFC35C19037871003E00EA /* slightly_after_darkView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = slightly_after_darkView.h; sourceTree = "<group>"; };
-		C1FFC35D19037871003E00EA /* slightly_after_darkView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = slightly_after_darkView.m; sourceTree = "<group>"; };
-		C1FFC3641904A728003E00EA /* optionsPanel.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = optionsPanel.xib; sourceTree = "<group>"; };
+		C1FFC35C19037871003E00EA /* SADScreenSaverView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SADScreenSaverView.h; sourceTree = "<group>"; };
+		C1FFC35D19037871003E00EA /* SADScreenSaverView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SADScreenSaverView.m; sourceTree = "<group>"; };
+		D500000226A1000000000001 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D500000126A1000000000001 /* WebKit.framework in Frameworks */,
 				C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */,
 				C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */,
 			);
@@ -57,7 +57,7 @@
 		C1FFC34B19037871003E00EA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C1FFC34A19037871003E00EA /* slightly-after-dark.saver */,
+				C1FFC34A19037871003E00EA /* Slightly After Dark.saver */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,6 +65,7 @@
 		C1FFC34C19037871003E00EA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D500000226A1000000000001 /* WebKit.framework */,
 				C1FFC34D19037871003E00EA /* Cocoa.framework */,
 				C1FFC34F19037871003E00EA /* ScreenSaver.framework */,
 				C1FFC35119037871003E00EA /* Other Frameworks */,
@@ -85,10 +86,9 @@
 		C1FFC35519037871003E00EA /* slightly-after-dark */ = {
 			isa = PBXGroup;
 			children = (
-				C1FFC35C19037871003E00EA /* slightly_after_darkView.h */,
-				C1FFC35D19037871003E00EA /* slightly_after_darkView.m */,
+				C1FFC35C19037871003E00EA /* SADScreenSaverView.h */,
+				C1FFC35D19037871003E00EA /* SADScreenSaverView.m */,
 				C1FFC35619037871003E00EA /* Supporting Files */,
-				C1FFC3641904A728003E00EA /* optionsPanel.xib */,
 			);
 			path = "slightly-after-dark";
 			sourceTree = "<group>";
@@ -98,7 +98,6 @@
 			children = (
 				C1FFC35719037871003E00EA /* slightly-after-dark-Info.plist */,
 				C1FFC35819037871003E00EA /* InfoPlist.strings */,
-				C1FFC35B19037871003E00EA /* slightly-after-dark-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -120,11 +119,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C1FFC36119037871003E00EA /* Build configuration list for PBXNativeTarget "slightly-after-dark" */;
 			buildPhases = (
+				D500000326A1000000000001 /* Validate Saver Assets */,
 				C1FFC34419037871003E00EA /* Sources */,
 				C1FFC34519037871003E00EA /* Frameworks */,
 				C1FFC34619037871003E00EA /* Headers */,
 				C1FFC34719037871003E00EA /* Resources */,
-				C1FFC34819037871003E00EA /* Rez */,
 			);
 			buildRules = (
 			);
@@ -132,7 +131,7 @@
 			);
 			name = "slightly-after-dark";
 			productName = "slightly-after-dark";
-			productReference = C1FFC34A19037871003E00EA /* slightly-after-dark.saver */;
+			productReference = C1FFC34A19037871003E00EA /* Slightly After Dark.saver */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -141,7 +140,7 @@
 		C1FFC34019037871003E00EA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 2660;
 				ORGANIZATIONNAME = httpster;
 			};
 			buildConfigurationList = C1FFC34319037871003E00EA /* Build configuration list for PBXProject "slightly-after-dark" */;
@@ -169,28 +168,41 @@
 			files = (
 				C1DA2EA71905BC1B007124F0 /* after-dark-css in Resources */,
 				C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */,
-				C1FFC3651904A728003E00EA /* optionsPanel.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXRezBuildPhase section */
-		C1FFC34819037871003E00EA /* Rez */ = {
-			isa = PBXRezBuildPhase;
+/* Begin PBXShellScriptBuildPhase section */
+		D500000326A1000000000001 /* Validate Saver Assets */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/scripts/validate-assets.sh",
+				"${SRCROOT}/after-dark-css",
+			);
+			name = "Validate Saver Assets";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"${SRCROOT}/scripts/validate-assets.sh\" \"${SRCROOT}/after-dark-css\"\n";
 		};
-/* End PBXRezBuildPhase section */
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C1FFC34419037871003E00EA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1FFC35E19037871003E00EA /* slightly_after_darkView.m in Sources */,
+				C1FFC35E19037871003E00EA /* SADScreenSaverView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +251,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -255,7 +268,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -293,6 +306,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -302,7 +316,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -311,12 +325,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "slightly-after-dark/slightly-after-dark-Prefix.pch";
+				CURRENT_PROJECT_VERSION = 3;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "slightly-after-dark/slightly-after-dark-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.httpster.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 2.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.httpster.slightly-after-dark";
+				PRODUCT_NAME = "Slightly After Dark";
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Debug;
@@ -325,12 +340,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "slightly-after-dark/slightly-after-dark-Prefix.pch";
+				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "slightly-after-dark/slightly-after-dark-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.httpster.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 2.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.httpster.slightly-after-dark";
+				PRODUCT_NAME = "Slightly After Dark";
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Release;
