@@ -1,8 +1,7 @@
 # Slightly After Dark
 
 A native macOS screen saver that runs Bryan Braun's recreations of classic
-After Dark animations. The visuals are bundled with the screen saver, so they
-work without a network connection.
+After Dark animations
 
 ## Gallery
 
