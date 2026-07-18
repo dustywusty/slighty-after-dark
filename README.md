@@ -1,7 +1,7 @@
 # Slightly After Dark
 
-A native macOS screen saver that runs Bryan Braun's recreations of classic
-After Dark animations
+A native macOS screen saver that runs [Bryan Braun](https://github.com/bryanbraun)'s
+recreations of classic After Dark animations
 
 ## Gallery
 
@@ -148,8 +148,10 @@ test harness to override that automatic choice.
 
 ## Credits and asset licensing
 
-The HTML and CSS come from
-[bryanbraun/after-dark-css](https://github.com/bryanbraun/after-dark-css).
+Special thanks to [Bryan Braun](https://github.com/bryanbraun) for creating
+[after-dark-css](https://github.com/bryanbraun/after-dark-css), whose HTML and
+CSS power these animations.
+
 Upstream documents the HTML/CSS as MIT-licensed and the ChicagoFLF font under
 the SIL Open Font License. The original imagery is copyright Berkeley Systems;
 review [upstream's licensing notes](https://github.com/bryanbraun/after-dark-css#license)
