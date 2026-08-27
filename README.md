@@ -138,11 +138,13 @@ If `gifsicle` is installed, it also performs an additional optimization pass.
 
 The native wrapper uses `WKWebView`. macOS 26.4 introduced
 [a system regression](https://developer.apple.com/forums/thread/820860) where
-`WKWebView` content disappears inside legacy screen saver hierarchies, so macOS
-26 releases from 26.4 onward use a compatibility renderer until Apple fixes the
-host. That host also reports compatibility pages as hidden and freezes their
-CSS timeline; the native screen saver timer advances the cached Web Animations
-timeline at the configured frame rate so animations continue normally.
+`WKWebView` content disappears inside legacy screen saver hierarchies, so that
+release uses a compatibility renderer. The workaround is intentionally limited
+to 26.4: forcing later releases through legacy WebKit causes unbounded
+CoreAnimation memory growth during long-running animated wallpapers. The 26.4
+host also reports compatibility pages as hidden and freezes their CSS timeline;
+the native screen saver timer advances the cached Web Animations timeline at the
+configured frame rate so animations continue normally.
 Set `SAD_WEB_RENDERER=modern` or `SAD_WEB_RENDERER=legacy` when running a local
 test harness to override that automatic choice.
 

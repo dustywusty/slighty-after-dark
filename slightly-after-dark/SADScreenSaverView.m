@@ -39,10 +39,10 @@ static BOOL SADShouldUseLegacyWebView(void)
     }
 
     // WKWebView content in a legacy ScreenSaver hierarchy disappears after a few
-    // seconds on macOS 26.4 and later. Keep this compatibility path isolated so
-    // newer macOS releases automatically return to WKWebView.
+    // seconds on macOS 26.4. Keep this compatibility path isolated to that OS
+    // release so later WebKit versions do not inherit legacy renderer bugs.
     NSOperatingSystemVersion version = NSProcessInfo.processInfo.operatingSystemVersion;
-    return version.majorVersion == 26 && version.minorVersion >= 4;
+    return version.majorVersion == 26 && version.minorVersion == 4;
 }
 
 @interface SADScreenSaverView () <WKNavigationDelegate>
