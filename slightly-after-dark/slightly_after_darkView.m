@@ -15,7 +15,8 @@
 @property (strong, nonatomic) IBOutlet NSComboBox   *comboBox;
 @property (strong, nonatomic) IBOutlet NSPanel      *optionsPanel;
 @property (strong, nonatomic)          NSArray      *savers;
-@property (strong, nonatomic)          WebView      *webView;
+@property (strong, nonatomic)          WKWebView    *webView;
+@property (assign, nonatomic)          NSInteger    screenSaverIndex;
 
 @end
 
@@ -90,29 +91,17 @@
         [defaults registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
                                     [NSNumber numberWithInt:1], @"ScreenSaver",
                                     nil]];
-        NSInteger index = [defaults integerForKey:@"ScreenSaver"] >= 0 ? [defaults integerForKey:@"ScreenSaver"] : 0;
-        
-        //webview
-        _webView = [[WebView alloc] initWithFrame:[self bounds]];
-        [_webView setFrameLoadDelegate:self];
-        [_webView setShouldUpdateWhileOffscreen:YES];
-        [_webView setPolicyDelegate:self];
-        [_webView setUIDelegate:self];
-        [_webView setEditingDelegate:self];
-        [_webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-        [_webView setAutoresizesSubviews:YES];
-        [_webView setDrawsBackground:NO];
-        [self addSubview:_webView];
-        
-        NSColor *color = [NSColor colorWithCalibratedWhite:0.0 alpha:1.0];
-        [[_webView layer] setBackgroundColor:color.CGColor];
-        
-        //set our saver
-        [self setScreenSaverForIndex:index];
+        NSInteger index = [defaults integerForKey:@"ScreenSaver"];
+        _screenSaverIndex = (index >= 0 && index < _savers.count) ? index : 0;
+
+        // WKWebView is created in startAnimation and released in stopAnimation so
+        // the wallpaper host cannot retain an animated page after the saver stops.
+        [self setWantsLayer:YES];
+        self.layer.backgroundColor = NSColor.blackColor.CGColor;
         
         //set our selected saver in options TODO: make me work
-        [_comboBox selectItemAtIndex:index];
-        [_comboBox setObjectValue: [_savers objectAtIndex:index]];
+        [_comboBox selectItemAtIndex:_screenSaverIndex];
+        [_comboBox setObjectValue:[_savers objectAtIndex:_screenSaverIndex]];
     }
     return self;
 }
@@ -135,16 +124,55 @@
 #pragma mark - screen saver helper
 // ------------------------------------------------------------------------------------
 
-- (void)setScreenSaverForIndex:(NSInteger)index
+- (void)createWebViewIfNeeded
 {
-    NSURL *mainWebPageURL = [[NSBundle bundleForClass:[self class]] URLForResource:[_savers[index] objectForKey:@"filename"]
+    if (_webView) {
+        return;
+    }
+
+    WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
+    configuration.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
+
+    _webView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
+    _webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+
+    if (@available(macOS 12.0, *)) {
+        _webView.underPageBackgroundColor = NSColor.blackColor;
+    }
+
+    [self addSubview:_webView];
+}
+
+- (void)loadSelectedScreenSaver
+{
+    NSURL *mainWebPageURL = [[NSBundle bundleForClass:[self class]] URLForResource:[_savers[_screenSaverIndex] objectForKey:@"filename"]
                                                                      withExtension:@"html"
                                                                       subdirectory:@"after-dark-css/all"];
-    
-    [[_webView mainFrame] loadRequest:[NSURLRequest requestWithURL:mainWebPageURL]];
+    if (!mainWebPageURL) {
+        return;
+    }
 
-    [self stopAnimation];
-    [self startAnimation];
+    NSURL *resourceDirectoryURL = [[mainWebPageURL URLByDeletingLastPathComponent] URLByDeletingLastPathComponent];
+    [_webView loadFileURL:mainWebPageURL allowingReadAccessToURL:resourceDirectoryURL];
+}
+
+- (void)tearDownWebView
+{
+    [_webView stopLoading];
+    [_webView removeFromSuperview];
+    _webView = nil;
+}
+
+- (void)setScreenSaverForIndex:(NSInteger)index
+{
+    if (index < 0 || index >= _savers.count) {
+        return;
+    }
+
+    _screenSaverIndex = index;
+    if (_webView) {
+        [self loadSelectedScreenSaver];
+    }
 }
 
 // ------------------------------------------------------------------------------------
@@ -154,11 +182,14 @@
 - (void)startAnimation
 {
     [super startAnimation];
+    [self createWebViewIfNeeded];
+    [self loadSelectedScreenSaver];
 }
 
 - (void)stopAnimation
 {
     [super stopAnimation];
+    [self tearDownWebView];
 }
 
 - (void)drawRect:(NSRect)rect
@@ -169,6 +200,11 @@
 - (void)animateOneFrame
 {
     return;
+}
+
+- (void)dealloc
+{
+    [self tearDownWebView];
 }
 
 // ------------------------------------------------------------------------------------
@@ -196,6 +232,10 @@
 - (IBAction)performDone:(id)sender
 {
     NSInteger index = [_comboBox indexOfSelectedItem];
+    if (index < 0 || index >= _savers.count) {
+        [NSApp endSheet:_optionsPanel];
+        return;
+    }
     
     ScreenSaverDefaults *defaults = [ScreenSaverDefaults defaultsForModuleWithName:@"com.httpster.slightly-after-dark"];
     [defaults setInteger:index forKey:@"ScreenSaver"];
