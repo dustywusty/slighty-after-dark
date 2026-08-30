@@ -108,6 +108,8 @@ Open the screen saver's Options panel in System Settings to tune the animation:
   the display size.
 - **Motion speed** changes the animation timeline from 50% to 200% independently
   of smoothness.
+- **Show process memory usage** adds a once-per-second resident-memory readout
+  to the upper-left corner. It is off by default.
 
 Changes preview immediately. **Done** saves them, while **Cancel** restores the
 settings that were active when the panel opened.
@@ -138,11 +140,12 @@ If `gifsicle` is installed, it also performs an additional optimization pass.
 
 The native wrapper uses `WKWebView`. macOS 26.4 introduced
 [a system regression](https://developer.apple.com/forums/thread/820860) where
-`WKWebView` content disappears inside legacy screen saver hierarchies, so that
-release uses a compatibility renderer. The workaround is intentionally limited
-to 26.4: forcing later releases through legacy WebKit causes unbounded
-CoreAnimation memory growth during long-running animated wallpapers. The 26.4
-host also reports compatibility pages as hidden and freezes their CSS timeline;
+`WKWebView` content disappears inside legacy screen saver hierarchies. The issue
+is still present on 26.5, so both releases use a compatibility renderer. The
+workaround is intentionally limited to those releases: forcing unaffected
+releases through legacy WebKit causes unbounded CoreAnimation memory growth
+during long-running animated wallpapers. The affected host also reports
+compatibility pages as hidden and freezes their CSS timeline;
 the native screen saver timer advances the cached Web Animations timeline at the
 configured frame rate so animations continue normally.
 Set `SAD_WEB_RENDERER=modern` or `SAD_WEB_RENDERER=legacy` when running a local
