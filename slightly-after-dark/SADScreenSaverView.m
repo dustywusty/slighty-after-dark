@@ -1,6 +1,7 @@
 #import "SADScreenSaverView.h"
 
 #import <AppKit/AppKit.h>
+#import <mach/mach.h>
 #import <math.h>
 #import <WebKit/WebKit.h>
 
@@ -8,11 +9,14 @@ static NSString * const SADSelectedSaverDefaultsKey = @"ScreenSaver";
 static NSString * const SADFrameRateDefaultsKey = @"FrameRate";
 static NSString * const SADObjectScaleDefaultsKey = @"ObjectScalePercent";
 static NSString * const SADPlaybackSpeedDefaultsKey = @"PlaybackSpeedPercent";
+static NSString * const SADShowMemoryUsageDefaultsKey = @"ShowMemoryUsage";
 static NSString * const SADAssetDirectoryName = @"after-dark-css";
 static NSString * const SADSaverPopUpIdentifier = @"SADSaverPopUp";
 static NSString * const SADFrameRateSliderIdentifier = @"SADFrameRateSlider";
 static NSString * const SADObjectScaleSliderIdentifier = @"SADObjectScaleSlider";
 static NSString * const SADPlaybackSpeedSliderIdentifier = @"SADPlaybackSpeedSlider";
+static NSString * const SADShowMemoryUsageCheckboxIdentifier = @"SADShowMemoryUsageCheckbox";
+static NSString * const SADMemoryUsageLabelIdentifier = @"SADMemoryUsageLabel";
 static NSString * const SADCancelButtonIdentifier = @"SADCancelButton";
 static NSString * const SADDoneButtonIdentifier = @"SADDoneButton";
 static const NSTimeInterval SADLegacyPosterTimeMilliseconds = 2000.0;
@@ -25,6 +29,7 @@ static const NSInteger SADMaximumObjectScalePercent = 200;
 static const NSInteger SADDefaultPlaybackSpeedPercent = 100;
 static const NSInteger SADMinimumPlaybackSpeedPercent = 50;
 static const NSInteger SADMaximumPlaybackSpeedPercent = 200;
+static const NSTimeInterval SADMemoryUsageUpdateInterval = 1.0;
 
 static BOOL SADShouldUseLegacyWebView(void)
 {
@@ -38,11 +43,13 @@ static BOOL SADShouldUseLegacyWebView(void)
         }
     }
 
-    // WKWebView content in a legacy ScreenSaver hierarchy disappears after a few
-    // seconds on macOS 26.4 and later. Keep this compatibility path isolated so
-    // newer macOS releases automatically return to WKWebView.
+    // WKWebView content in a legacy ScreenSaver hierarchy disappears on macOS
+    // 26.4 and 26.5. Keep this compatibility path isolated to the affected OS
+    // releases so later WebKit versions do not inherit legacy renderer bugs.
     NSOperatingSystemVersion version = NSProcessInfo.processInfo.operatingSystemVersion;
-    return version.majorVersion == 26 && version.minorVersion >= 4;
+    return version.majorVersion == 26
+        && version.minorVersion >= 4
+        && version.minorVersion <= 5;
 }
 
 @interface SADScreenSaverView () <WKNavigationDelegate>
@@ -52,6 +59,7 @@ static BOOL SADShouldUseLegacyWebView(void)
 @property (nonatomic) NSInteger frameRate;
 @property (nonatomic) NSInteger objectScalePercent;
 @property (nonatomic) NSInteger playbackSpeedPercent;
+@property (nonatomic) BOOL showsMemoryUsage;
 @property (nonatomic, strong, nullable) NSView *rendererView;
 @property (nonatomic, strong, nullable) WKWebView *modernWebView;
 @property (nonatomic, strong, nullable) id legacyWebView;
@@ -63,12 +71,15 @@ static BOOL SADShouldUseLegacyWebView(void)
 @property (nonatomic) NSTimeInterval legacyAnimationEpoch;
 @property (nonatomic) NSTimeInterval legacyAnimationOffsetMilliseconds;
 @property (nonatomic) NSSize presentationSettingsViewportSize;
+@property (nonatomic, strong, nullable) NSTextField *memoryUsageLabel;
+@property (nonatomic) NSTimeInterval lastMemoryUsageUpdateUptime;
 
 @property (nonatomic, strong, nullable) NSPanel *configurationPanel;
 @property (nonatomic, strong, nullable) NSPopUpButton *saverPopUpButton;
 @property (nonatomic, strong, nullable) NSSlider *frameRateSlider;
 @property (nonatomic, strong, nullable) NSSlider *objectScaleSlider;
 @property (nonatomic, strong, nullable) NSSlider *playbackSpeedSlider;
+@property (nonatomic, strong, nullable) NSButton *showMemoryUsageCheckbox;
 @property (nonatomic, strong, nullable) NSTextField *frameRateValueLabel;
 @property (nonatomic, strong, nullable) NSTextField *objectScaleValueLabel;
 @property (nonatomic, strong, nullable) NSTextField *playbackSpeedValueLabel;
@@ -76,6 +87,7 @@ static BOOL SADShouldUseLegacyWebView(void)
 @property (nonatomic) NSInteger configurationOriginalFrameRate;
 @property (nonatomic) NSInteger configurationOriginalObjectScalePercent;
 @property (nonatomic) NSInteger configurationOriginalPlaybackSpeedPercent;
+@property (nonatomic) BOOL configurationOriginalShowsMemoryUsage;
 
 @end
 
@@ -112,6 +124,7 @@ static BOOL SADShouldUseLegacyWebView(void)
                                                  defaultValue:SADDefaultPlaybackSpeedPercent
                                                       minimum:SADMinimumPlaybackSpeedPercent
                                                       maximum:SADMaximumPlaybackSpeedPercent];
+    self.showsMemoryUsage = [[self screenSaverDefaults] boolForKey:SADShowMemoryUsageDefaultsKey];
     [self updateAnimationTimeInterval];
 
     // The modern Screen Saver host may create a preview at zero size and may
@@ -119,6 +132,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     // frame now so the host always has content to display; startAnimation will
     // reload it to restart the CSS animations.
     [self loadSelectedSaver];
+    [self updateMemoryUsageDisplay];
 
     return self;
 }
@@ -156,8 +170,68 @@ static BOOL SADShouldUseLegacyWebView(void)
         SADFrameRateDefaultsKey: @(SADDefaultFrameRate),
         SADObjectScaleDefaultsKey: @(SADDefaultObjectScalePercent),
         SADPlaybackSpeedDefaultsKey: @(SADDefaultPlaybackSpeedPercent),
+        SADShowMemoryUsageDefaultsKey: @NO,
     }];
     return defaults;
+}
+
+- (nullable NSNumber *)residentMemoryUsageBytes
+{
+    mach_task_basic_info_data_t info = { 0 };
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    kern_return_t result = task_info(mach_task_self(),
+                                     MACH_TASK_BASIC_INFO,
+                                     (task_info_t)&info,
+                                     &count);
+    return result == KERN_SUCCESS ? @(info.resident_size) : nil;
+}
+
+- (void)updateMemoryUsageDisplay
+{
+    if (!self.showsMemoryUsage) {
+        [self.memoryUsageLabel removeFromSuperview];
+        self.memoryUsageLabel = nil;
+        return;
+    }
+
+    if (self.memoryUsageLabel == nil) {
+        NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
+        label.identifier = SADMemoryUsageLabelIdentifier;
+        label.editable = NO;
+        label.selectable = NO;
+        label.bezeled = NO;
+        label.drawsBackground = YES;
+        label.backgroundColor = [NSColor colorWithWhite:0.0 alpha:0.65];
+        label.textColor = NSColor.whiteColor;
+        label.font = [NSFont monospacedDigitSystemFontOfSize:13.0 weight:NSFontWeightRegular];
+        label.alignment = NSTextAlignmentLeft;
+        label.lineBreakMode = NSLineBreakByClipping;
+        self.memoryUsageLabel = label;
+    }
+
+    NSNumber *residentBytes = [self residentMemoryUsageBytes];
+    NSString *value = residentBytes == nil
+        ? @"Unavailable"
+        : [NSByteCountFormatter stringFromByteCount:residentBytes.longLongValue
+                                         countStyle:NSByteCountFormatterCountStyleMemory];
+    self.memoryUsageLabel.stringValue = [NSString stringWithFormat:@"Process memory: %@", value];
+    [self.memoryUsageLabel sizeToFit];
+    NSRect labelFrame = self.memoryUsageLabel.frame;
+    labelFrame.size.width += 16.0;
+    labelFrame.size.height += 8.0;
+    self.memoryUsageLabel.frame = labelFrame;
+    [self addSubview:self.memoryUsageLabel positioned:NSWindowAbove relativeTo:nil];
+    self.lastMemoryUsageUpdateUptime = NSProcessInfo.processInfo.systemUptime;
+    [self setNeedsLayout:YES];
+}
+
+- (void)updateMemoryUsageDisplayIfNeeded
+{
+    NSTimeInterval uptime = NSProcessInfo.processInfo.systemUptime;
+    if (self.showsMemoryUsage
+        && uptime - self.lastMemoryUsageUpdateUptime >= SADMemoryUsageUpdateInterval) {
+        [self updateMemoryUsageDisplay];
+    }
 }
 
 - (NSInteger)savedSaverIndex
@@ -214,6 +288,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     self.modernWebView = webView;
     self.rendererView = webView;
     [self addSubview:webView];
+    [self updateMemoryUsageDisplay];
     [self updateAnimationTimeInterval];
 }
 
@@ -228,6 +303,18 @@ static BOOL SADShouldUseLegacyWebView(void)
 
     NSView *webView = [(NSView *)[legacyWebViewClass alloc] initWithFrame:self.bounds];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    // Seeking paused CSS animations in the legacy compositor accumulates
+    // CoreAnimation backing stores on macOS 26.5. Render these simple 2D pages
+    // without accelerated compositing. Give this view its own preferences so
+    // other screen saver modules in the host keep their rendering settings.
+    if ([webView respondsToSelector:NSSelectorFromString(@"setPreferencesIdentifier:")]) {
+        [webView setValue:NSUUID.UUID.UUIDString forKey:@"preferencesIdentifier"];
+    }
+    id preferences = [webView valueForKey:@"preferences"];
+    [preferences setValue:@NO forKey:@"autosaves"];
+    if ([preferences respondsToSelector:NSSelectorFromString(@"setAcceleratedCompositingEnabled:")]) {
+        [preferences setValue:@NO forKey:@"acceleratedCompositingEnabled"];
+    }
     if ([webView respondsToSelector:NSSelectorFromString(@"setDrawsBackground:")]) {
         [webView setValue:@NO forKey:@"drawsBackground"];
     }
@@ -238,6 +325,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     self.legacyWebView = webView;
     self.rendererView = webView;
     [self addSubview:webView];
+    [self updateMemoryUsageDisplay];
     [self updateAnimationTimeInterval];
     return YES;
 }
@@ -562,6 +650,13 @@ static BOOL SADShouldUseLegacyWebView(void)
         ((NSView *)self.legacyWebView).frame = self.bounds;
     }
 
+    if (self.memoryUsageLabel != nil) {
+        NSRect labelFrame = self.memoryUsageLabel.frame;
+        labelFrame.origin = NSMakePoint(16.0,
+            MAX(16.0, NSHeight(self.bounds) - NSHeight(labelFrame) - 16.0));
+        self.memoryUsageLabel.frame = labelFrame;
+    }
+
     NSSize viewportSize = self.bounds.size;
     if (viewportSize.width > 0.0 && viewportSize.height > 0.0
         && !NSEqualSizes(viewportSize, self.presentationSettingsViewportSize)) {
@@ -575,6 +670,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     [self updateAnimationTimeInterval];
     [super startAnimation];
     [self loadSelectedSaver];
+    [self updateMemoryUsageDisplay];
 }
 
 - (void)stopAnimation
@@ -594,6 +690,7 @@ static BOOL SADShouldUseLegacyWebView(void)
 
 - (void)animateOneFrame
 {
+    [self updateMemoryUsageDisplayIfNeeded];
     if (self.legacyWebView == nil) {
         return;
     }
@@ -698,13 +795,14 @@ static BOOL SADShouldUseLegacyWebView(void)
     self.configurationOriginalFrameRate = self.frameRate;
     self.configurationOriginalObjectScalePercent = self.objectScalePercent;
     self.configurationOriginalPlaybackSpeedPercent = self.playbackSpeedPercent;
+    self.configurationOriginalShowsMemoryUsage = self.showsMemoryUsage;
     [self synchronizeConfigurationControls];
     return self.configurationPanel;
 }
 
 - (void)buildConfigurationPanel
 {
-    NSRect panelFrame = NSMakeRect(0.0, 0.0, 500.0, 340.0);
+    NSRect panelFrame = NSMakeRect(0.0, 0.0, 500.0, 376.0);
     NSPanel *panel = [[NSPanel alloc] initWithContentRect:panelFrame
                                                 styleMask:NSWindowStyleMaskTitled
                                                   backing:NSBackingStoreBuffered
@@ -712,10 +810,10 @@ static BOOL SADShouldUseLegacyWebView(void)
     panel.title = @"Slightly After Dark";
 
     NSTextField *label = [NSTextField labelWithString:@"Screen saver:"];
-    label.frame = NSMakeRect(24.0, 272.0, 110.0, 24.0);
+    label.frame = NSMakeRect(24.0, 308.0, 110.0, 24.0);
     [panel.contentView addSubview:label];
 
-    NSPopUpButton *popUpButton = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(140.0, 268.0, 332.0, 30.0)
+    NSPopUpButton *popUpButton = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(140.0, 304.0, 332.0, 30.0)
                                                             pullsDown:NO];
     for (NSDictionary<NSString *, NSString *> *saver in self.savers) {
         [popUpButton addItemWithTitle:saver[@"title"]];
@@ -726,10 +824,10 @@ static BOOL SADShouldUseLegacyWebView(void)
     [panel.contentView addSubview:popUpButton];
 
     NSTextField *frameRateLabel = [NSTextField labelWithString:@"Smoothness:"];
-    frameRateLabel.frame = NSMakeRect(24.0, 214.0, 110.0, 24.0);
+    frameRateLabel.frame = NSMakeRect(24.0, 250.0, 110.0, 24.0);
     [panel.contentView addSubview:frameRateLabel];
 
-    NSSlider *frameRateSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 210.0, 240.0, 28.0)];
+    NSSlider *frameRateSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 246.0, 240.0, 28.0)];
     frameRateSlider.minValue = SADMinimumFrameRate;
     frameRateSlider.maxValue = SADMaximumFrameRate;
     frameRateSlider.numberOfTickMarks = 4;
@@ -743,15 +841,15 @@ static BOOL SADShouldUseLegacyWebView(void)
     [panel.contentView addSubview:frameRateSlider];
 
     NSTextField *frameRateValueLabel = [NSTextField labelWithString:@""];
-    frameRateValueLabel.frame = NSMakeRect(390.0, 214.0, 82.0, 24.0);
+    frameRateValueLabel.frame = NSMakeRect(390.0, 250.0, 82.0, 24.0);
     frameRateValueLabel.alignment = NSTextAlignmentRight;
     [panel.contentView addSubview:frameRateValueLabel];
 
     NSTextField *objectScaleLabel = [NSTextField labelWithString:@"Object size:"];
-    objectScaleLabel.frame = NSMakeRect(24.0, 158.0, 110.0, 24.0);
+    objectScaleLabel.frame = NSMakeRect(24.0, 194.0, 110.0, 24.0);
     [panel.contentView addSubview:objectScaleLabel];
 
-    NSSlider *objectScaleSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 154.0, 240.0, 28.0)];
+    NSSlider *objectScaleSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 190.0, 240.0, 28.0)];
     objectScaleSlider.minValue = SADMinimumObjectScalePercent;
     objectScaleSlider.maxValue = SADMaximumObjectScalePercent;
     objectScaleSlider.numberOfTickMarks = 7;
@@ -764,15 +862,15 @@ static BOOL SADShouldUseLegacyWebView(void)
     [panel.contentView addSubview:objectScaleSlider];
 
     NSTextField *objectScaleValueLabel = [NSTextField labelWithString:@""];
-    objectScaleValueLabel.frame = NSMakeRect(390.0, 158.0, 82.0, 24.0);
+    objectScaleValueLabel.frame = NSMakeRect(390.0, 194.0, 82.0, 24.0);
     objectScaleValueLabel.alignment = NSTextAlignmentRight;
     [panel.contentView addSubview:objectScaleValueLabel];
 
     NSTextField *playbackSpeedLabel = [NSTextField labelWithString:@"Motion speed:"];
-    playbackSpeedLabel.frame = NSMakeRect(24.0, 102.0, 110.0, 24.0);
+    playbackSpeedLabel.frame = NSMakeRect(24.0, 138.0, 110.0, 24.0);
     [panel.contentView addSubview:playbackSpeedLabel];
 
-    NSSlider *playbackSpeedSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 98.0, 240.0, 28.0)];
+    NSSlider *playbackSpeedSlider = [[NSSlider alloc] initWithFrame:NSMakeRect(140.0, 134.0, 240.0, 28.0)];
     playbackSpeedSlider.minValue = SADMinimumPlaybackSpeedPercent;
     playbackSpeedSlider.maxValue = SADMaximumPlaybackSpeedPercent;
     playbackSpeedSlider.numberOfTickMarks = 7;
@@ -785,9 +883,17 @@ static BOOL SADShouldUseLegacyWebView(void)
     [panel.contentView addSubview:playbackSpeedSlider];
 
     NSTextField *playbackSpeedValueLabel = [NSTextField labelWithString:@""];
-    playbackSpeedValueLabel.frame = NSMakeRect(390.0, 102.0, 82.0, 24.0);
+    playbackSpeedValueLabel.frame = NSMakeRect(390.0, 138.0, 82.0, 24.0);
     playbackSpeedValueLabel.alignment = NSTextAlignmentRight;
     [panel.contentView addSubview:playbackSpeedValueLabel];
+
+    NSButton *showMemoryUsageCheckbox = [NSButton checkboxWithTitle:@"Show process memory usage"
+                                                              target:self
+                                                              action:@selector(configurationValueChanged:)];
+    showMemoryUsageCheckbox.frame = NSMakeRect(140.0, 92.0, 250.0, 24.0);
+    showMemoryUsageCheckbox.identifier = SADShowMemoryUsageCheckboxIdentifier;
+    showMemoryUsageCheckbox.toolTip = @"Show this screen saver process's resident memory";
+    [panel.contentView addSubview:showMemoryUsageCheckbox];
 
     NSTextField *note = [NSTextField wrappingLabelWithString:
         @"Object size affects foreground elements where available. Modern WebKit follows the display refresh rate automatically."];
@@ -817,6 +923,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     self.frameRateSlider = frameRateSlider;
     self.objectScaleSlider = objectScaleSlider;
     self.playbackSpeedSlider = playbackSpeedSlider;
+    self.showMemoryUsageCheckbox = showMemoryUsageCheckbox;
     self.frameRateValueLabel = frameRateValueLabel;
     self.objectScaleValueLabel = objectScaleValueLabel;
     self.playbackSpeedValueLabel = playbackSpeedValueLabel;
@@ -830,6 +937,9 @@ static BOOL SADShouldUseLegacyWebView(void)
     self.frameRateSlider.enabled = self.legacyWebView != nil;
     self.objectScaleSlider.integerValue = self.objectScalePercent;
     self.playbackSpeedSlider.integerValue = self.playbackSpeedPercent;
+    self.showMemoryUsageCheckbox.state = self.showsMemoryUsage
+        ? NSControlStateValueOn
+        : NSControlStateValueOff;
     self.frameRateValueLabel.stringValue = self.legacyWebView != nil
         ? [NSString stringWithFormat:@"%ld FPS", (long)self.frameRate]
         : @"Display";
@@ -872,6 +982,8 @@ static BOOL SADShouldUseLegacyWebView(void)
     BOOL saverChanged = index != self.selectedSaverIndex;
     BOOL frameRateChanged = frameRate != self.frameRate;
     BOOL speedChanged = playbackSpeed != self.playbackSpeedPercent;
+    BOOL showMemoryUsage = self.showMemoryUsageCheckbox.state == NSControlStateValueOn;
+    BOOL memoryUsageChanged = showMemoryUsage != self.showsMemoryUsage;
     self.selectedSaverIndex = index;
     self.objectScalePercent = objectScale;
     if (speedChanged) {
@@ -884,6 +996,10 @@ static BOOL SADShouldUseLegacyWebView(void)
     if (frameRateChanged) {
         self.frameRate = frameRate;
         [self applyFrameRatePreservingAnimation];
+    }
+    if (memoryUsageChanged) {
+        self.showsMemoryUsage = showMemoryUsage;
+        [self updateMemoryUsageDisplay];
     }
     [self synchronizeConfigurationControls];
 
@@ -900,6 +1016,8 @@ static BOOL SADShouldUseLegacyWebView(void)
     BOOL frameRateChanged = self.frameRate != self.configurationOriginalFrameRate;
     self.selectedSaverIndex = self.configurationOriginalSaverIndex;
     self.objectScalePercent = self.configurationOriginalObjectScalePercent;
+    self.showsMemoryUsage = self.configurationOriginalShowsMemoryUsage;
+    [self updateMemoryUsageDisplay];
     if (self.legacyWebView != nil) {
         [self setPlaybackSpeedPercentPreservingPhase:self.configurationOriginalPlaybackSpeedPercent];
     } else {
@@ -926,6 +1044,7 @@ static BOOL SADShouldUseLegacyWebView(void)
     [defaults setInteger:self.frameRate forKey:SADFrameRateDefaultsKey];
     [defaults setInteger:self.objectScalePercent forKey:SADObjectScaleDefaultsKey];
     [defaults setInteger:self.playbackSpeedPercent forKey:SADPlaybackSpeedDefaultsKey];
+    [defaults setBool:self.showsMemoryUsage forKey:SADShowMemoryUsageDefaultsKey];
     [defaults synchronize];
     [NSApp endSheet:self.configurationPanel returnCode:NSModalResponseOK];
 }

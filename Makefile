@@ -9,8 +9,10 @@ PRODUCT := $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)/$(PRODUCT_NAME)
 INSTALL_DIRECTORY ?= $(HOME)/Library/Screen Savers
 INSTALLED_PRODUCT := $(INSTALL_DIRECTORY)/$(PRODUCT_NAME)
 LEGACY_INSTALLED_PRODUCT := $(INSTALL_DIRECTORY)/slightly-after-dark.saver
+MEMORY_TEST_SECONDS ?= 600
+MEMORY_TEST_MAX_GROWTH_MIB ?= 32
 
-.PHONY: bootstrap ensure-assets validate-assets previews build verify install open uninstall clean
+.PHONY: bootstrap ensure-assets validate-assets previews build verify memory-test install open uninstall clean
 
 bootstrap:
 	git submodule update --init --recursive
@@ -53,6 +55,9 @@ verify: build
 	/bin/sh scripts/verify-bundle.sh "$(PRODUCT)"
 	SAD_WEB_RENDERER=modern xcrun swift scripts/runtime-smoke-test.swift "$(PRODUCT)"
 	SAD_WEB_RENDERER=legacy xcrun swift scripts/runtime-smoke-test.swift "$(PRODUCT)"
+
+memory-test: build
+	xcrun swift scripts/memory-soak-test.swift "$(PRODUCT)" "$(MEMORY_TEST_SECONDS)" "$(MEMORY_TEST_MAX_GROWTH_MIB)"
 
 install: verify
 	/bin/mkdir -p "$(INSTALL_DIRECTORY)"

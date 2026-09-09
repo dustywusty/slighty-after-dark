@@ -21,6 +21,7 @@ private let selectedSaverKey = "ScreenSaver"
 private let frameRateKey = "FrameRate"
 private let objectScaleKey = "ObjectScalePercent"
 private let playbackSpeedKey = "PlaybackSpeedPercent"
+private let showMemoryUsageKey = "ShowMemoryUsage"
 
 private func fail(_ message: String) -> Never {
     FileHandle.standardError.write(Data("error: \(message)\n".utf8))
@@ -270,6 +271,10 @@ private func integerProperty(_ key: String, in view: ScreenSaverView) -> Int? {
     (view.value(forKey: key) as? NSNumber)?.intValue
 }
 
+private func booleanProperty(_ key: String, in view: ScreenSaverView) -> Bool? {
+    (view.value(forKey: key) as? NSNumber)?.boolValue
+}
+
 guard CommandLine.arguments.count == 2 else {
     fail("usage: runtime-smoke-test.swift /path/to/Slightly After Dark.saver")
 }
@@ -300,7 +305,8 @@ guard let defaults = ScreenSaverDefaults(forModuleWithName: defaultsModule) else
 }
 
 defer {
-    for key in [selectedSaverKey, frameRateKey, objectScaleKey, playbackSpeedKey] {
+    for key in [selectedSaverKey, frameRateKey, objectScaleKey, playbackSpeedKey,
+                showMemoryUsageKey] {
         defaults.removeObject(forKey: key)
     }
     defaults.synchronize()
@@ -434,6 +440,11 @@ for (index, name) in saverNames.enumerated() {
                   identifier: "SADPlaybackSpeedSlider",
                   in: contentView
               ),
+              let showMemoryUsageCheckbox = identifiedSubview(
+                  NSButton.self,
+                  identifier: "SADShowMemoryUsageCheckbox",
+                  in: contentView
+              ),
               popUp.numberOfItems == saverNames.count,
               popUp.indexOfSelectedItem == 0,
               frameRateSlider.minValue == 15,
@@ -446,7 +457,14 @@ for (index, name) in saverNames.enumerated() {
               objectScaleSlider.integerValue == 100,
               playbackSpeedSlider.minValue == 50,
               playbackSpeedSlider.maxValue == 200,
-              playbackSpeedSlider.integerValue == 100 else {
+              playbackSpeedSlider.integerValue == 100,
+              showMemoryUsageCheckbox.state == .off,
+              booleanProperty("showsMemoryUsage", in: view) == false,
+              identifiedSubview(
+                  NSTextField.self,
+                  identifier: "SADMemoryUsageLabel",
+                  in: view
+              ) == nil else {
             fail("Configuration sheet selection is invalid")
         }
     }
@@ -647,6 +665,7 @@ defaults.set(0, forKey: selectedSaverKey)
 defaults.set(60, forKey: frameRateKey)
 defaults.set(150, forKey: objectScaleKey)
 defaults.set(200, forKey: playbackSpeedKey)
+defaults.set(true, forKey: showMemoryUsageKey)
 defaults.synchronize()
 
 guard let settingsView = saverType.init(
@@ -669,6 +688,13 @@ waitForPresentationSettings(in: settingsView, scalePercent: 150, speedPercent: 2
 guard integerProperty("frameRate", in: settingsView) == 60,
       integerProperty("objectScalePercent", in: settingsView) == 150,
       integerProperty("playbackSpeedPercent", in: settingsView) == 200,
+      booleanProperty("showsMemoryUsage", in: settingsView) == true,
+      let memoryUsageLabel = identifiedSubview(
+          NSTextField.self,
+          identifier: "SADMemoryUsageLabel",
+          in: settingsView
+      ),
+      memoryUsageLabel.stringValue.hasPrefix("Process memory: "),
       let settingsRenderer = settingsView.subviews.first,
       let scaledToasterWidth = firstToasterWidth(in: settingsRenderer),
       abs(scaledToasterWidth - 96.0) < 1.0 else {
@@ -716,6 +742,11 @@ guard let settingsSheet = settingsView.configureSheet,
           identifier: "SADPlaybackSpeedSlider",
           in: settingsContentView
       ),
+      let showMemoryUsageCheckbox = identifiedSubview(
+          NSButton.self,
+          identifier: "SADShowMemoryUsageCheckbox",
+          in: settingsContentView
+      ),
       let cancelButton = identifiedSubview(
           NSButton.self,
           identifier: "SADCancelButton",
@@ -733,8 +764,17 @@ settingsWindow.beginSheet(settingsSheet) { _ in }
 frameRateSlider.integerValue = 45
 objectScaleSlider.integerValue = 200
 playbackSpeedSlider.integerValue = 50
+showMemoryUsageCheckbox.state = .off
 sendControlAction(objectScaleSlider)
 waitForPresentationSettings(in: settingsView, scalePercent: 200, speedPercent: 50)
+guard booleanProperty("showsMemoryUsage", in: settingsView) == false,
+      identifiedSubview(
+          NSTextField.self,
+          identifier: "SADMemoryUsageLabel",
+          in: settingsView
+      ) == nil else {
+    fail("The configuration sheet did not preview hiding process memory")
+}
 guard let liveToasterWidth = firstToasterWidth(in: settingsRenderer),
       abs(liveToasterWidth - 128.0) < 1.0 else {
     fail("The configuration sheet did not preview object size changes")
@@ -758,7 +798,14 @@ guard defaults.integer(forKey: selectedSaverKey) == 0,
       defaults.integer(forKey: frameRateKey) == 60,
       defaults.integer(forKey: objectScaleKey) == 150,
       defaults.integer(forKey: playbackSpeedKey) == 200,
+      defaults.bool(forKey: showMemoryUsageKey),
       integerProperty("frameRate", in: settingsView) == 60,
+      booleanProperty("showsMemoryUsage", in: settingsView) == true,
+      identifiedSubview(
+          NSTextField.self,
+          identifier: "SADMemoryUsageLabel",
+          in: settingsView
+      ) != nil,
       let restoredToasterWidth = firstToasterWidth(in: settingsRenderer),
       abs(restoredToasterWidth - 96.0) < 1.0 else {
     fail("Cancel did not restore the original settings without persisting changes")
@@ -792,7 +839,8 @@ runLoop(for: 0.1)
 guard defaults.integer(forKey: selectedSaverKey) == 1,
       defaults.integer(forKey: frameRateKey) == 45,
       defaults.integer(forKey: objectScaleKey) == 200,
-      defaults.integer(forKey: playbackSpeedKey) == 50 else {
+      defaults.integer(forKey: playbackSpeedKey) == 50,
+      defaults.bool(forKey: showMemoryUsageKey) else {
     fail("Done did not persist the selected settings")
 }
 
@@ -815,6 +863,12 @@ waitForPresentationSettings(in: persistedView, scalePercent: 200, speedPercent: 
 guard integerProperty("frameRate", in: persistedView) == 45,
       integerProperty("objectScalePercent", in: persistedView) == 200,
       integerProperty("playbackSpeedPercent", in: persistedView) == 50,
+      booleanProperty("showsMemoryUsage", in: persistedView) == true,
+      identifiedSubview(
+          NSTextField.self,
+          identifier: "SADMemoryUsageLabel",
+          in: persistedView
+      ) != nil,
       abs(persistedView.animationTimeInterval - (usesLegacyRenderer ? 1.0 / 45.0 : 1.0)) < 0.001 else {
     fail("A new view did not restore the persisted settings")
 }
