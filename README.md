@@ -121,6 +121,7 @@ The Xcode project has a shared `slightly-after-dark` scheme. Common commands:
 ```sh
 make build             # Build a universal Release bundle
 make verify            # Validate and load every saver through both renderers
+make memory-test       # Measure compatibility renderer memory for 10 minutes
 make clean
 ```
 
@@ -141,15 +142,26 @@ If `gifsicle` is installed, it also performs an additional optimization pass.
 The native wrapper uses `WKWebView`. macOS 26.4 introduced
 [a system regression](https://developer.apple.com/forums/thread/820860) where
 `WKWebView` content disappears inside legacy screen saver hierarchies. The issue
-is still present on 26.5, so both releases use a compatibility renderer. The
-workaround is intentionally limited to those releases: forcing unaffected
-releases through legacy WebKit causes unbounded CoreAnimation memory growth
-during long-running animated wallpapers. The affected host also reports
-compatibility pages as hidden and freezes their CSS timeline;
-the native screen saver timer advances the cached Web Animations timeline at the
-configured frame rate so animations continue normally.
+is still present on 26.5, so both releases use a compatibility renderer.
+
+The workaround is intentionally limited to those releases. The compatibility
+renderer disables accelerated compositing to prevent CoreAnimation memory growth
+as its timer advances paused CSS animations. This uses a private WebKit preference
+only when the runtime supports it. Each view has separate, unsaved preferences.
+
+The affected host reports compatibility pages as hidden and freezes their CSS timeline.
+The native screen saver timer advances cached animations at the configured frame rate.
 Set `SAD_WEB_RENDERER=modern` or `SAD_WEB_RENDERER=legacy` when running a local
 test harness to override that automatic choice.
+
+The memory test runs Flying Toasters at 5120×1440 in a hidden window.
+After a 30-second warmup, it measures the process memory footprint for ten minutes.
+The test fails if growth exceeds 32 MiB.
+It also checks that animations advance while the window is hidden.
+This test does not replace an overnight test in the macOS screen saver host.
+
+For a longer test, run `make memory-test MEMORY_TEST_SECONDS=3600`.
+The `MEMORY_TEST_MAX_GROWTH_MIB` variable sets the permitted growth.
 
 ## Credits and asset licensing
 

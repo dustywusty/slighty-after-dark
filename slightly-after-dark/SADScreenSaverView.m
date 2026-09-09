@@ -303,6 +303,18 @@ static BOOL SADShouldUseLegacyWebView(void)
 
     NSView *webView = [(NSView *)[legacyWebViewClass alloc] initWithFrame:self.bounds];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    // Seeking paused CSS animations in the legacy compositor accumulates
+    // CoreAnimation backing stores on macOS 26.5. Render these simple 2D pages
+    // without accelerated compositing. Give this view its own preferences so
+    // other screen saver modules in the host keep their rendering settings.
+    if ([webView respondsToSelector:NSSelectorFromString(@"setPreferencesIdentifier:")]) {
+        [webView setValue:NSUUID.UUID.UUIDString forKey:@"preferencesIdentifier"];
+    }
+    id preferences = [webView valueForKey:@"preferences"];
+    [preferences setValue:@NO forKey:@"autosaves"];
+    if ([preferences respondsToSelector:NSSelectorFromString(@"setAcceleratedCompositingEnabled:")]) {
+        [preferences setValue:@NO forKey:@"acceleratedCompositingEnabled"];
+    }
     if ([webView respondsToSelector:NSSelectorFromString(@"setDrawsBackground:")]) {
         [webView setValue:@NO forKey:@"drawsBackground"];
     }
