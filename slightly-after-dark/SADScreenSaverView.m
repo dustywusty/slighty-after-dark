@@ -44,12 +44,12 @@ static BOOL SADShouldUseLegacyWebView(void)
     }
 
     // WKWebView content in a legacy ScreenSaver hierarchy disappears on macOS
-    // 26.4 and 26.5. Keep this compatibility path isolated to the affected OS
-    // releases so later WebKit versions do not inherit legacy renderer bugs.
+    // 26.4 and every later 26.x release so far. Keep this compatibility path
+    // isolated to macOS 26 so later WebKit versions do not inherit legacy
+    // renderer bugs.
     NSOperatingSystemVersion version = NSProcessInfo.processInfo.operatingSystemVersion;
     return version.majorVersion == 26
-        && version.minorVersion >= 4
-        && version.minorVersion <= 5;
+        && version.minorVersion >= 4;
 }
 
 @interface SADScreenSaverView () <WKNavigationDelegate>
@@ -273,17 +273,13 @@ static BOOL SADShouldUseLegacyWebView(void)
     configuration.websiteDataStore = WKWebsiteDataStore.nonPersistentDataStore;
     configuration.preferences.javaScriptCanOpenWindowsAutomatically = NO;
     configuration.suppressesIncrementalRendering = YES;
-    if (@available(macOS 11.0, *)) {
-        configuration.defaultWebpagePreferences.allowsContentJavaScript = NO;
-    }
+    configuration.defaultWebpagePreferences.allowsContentJavaScript = NO;
 
     WKWebView *webView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     webView.navigationDelegate = self;
     webView.allowsMagnification = NO;
-    if (@available(macOS 12.0, *)) {
-        webView.underPageBackgroundColor = NSColor.blackColor;
-    }
+    webView.underPageBackgroundColor = NSColor.blackColor;
 
     self.modernWebView = webView;
     self.rendererView = webView;

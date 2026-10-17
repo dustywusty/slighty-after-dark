@@ -59,7 +59,7 @@ saver rather than from a display recording.
 
 ## Requirements
 
-- macOS 10.13 or later
+- macOS 12 or later
 - Xcode with the macOS SDK (building from source only)
 
 Release builds are universal and run natively on both Apple silicon and Intel
@@ -142,9 +142,10 @@ If `gifsicle` is installed, it also performs an additional optimization pass.
 The native wrapper uses `WKWebView`. macOS 26.4 introduced
 [a system regression](https://developer.apple.com/forums/thread/820860) where
 `WKWebView` content disappears inside legacy screen saver hierarchies. The issue
-is still present on 26.5, so both releases use a compatibility renderer.
+is still present through 26.6, so macOS 26.4 and later 26.x releases use a
+compatibility renderer.
 
-The workaround is intentionally limited to those releases. The compatibility
+The workaround is intentionally limited to macOS 26. The compatibility
 renderer disables accelerated compositing to prevent CoreAnimation memory growth
 as its timer advances paused CSS animations. This uses a private WebKit preference
 only when the runtime supports it. Each view has separate, unsaved preferences.
