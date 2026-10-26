@@ -1,0 +1,11 @@
+* text=auto
+
+# Shell scripts and the Xcode project must keep LF endings when checked out
+# on Windows, and PowerShell scripts conventionally use CRLF.
+*.sh text eol=lf
+*.swift text eol=lf
+*.pbxproj text eol=lf
+Makefile text eol=lf
+*.ps1 text eol=crlf
+
+*.gif binary
