@@ -1,3 +1,3 @@
 [submodule "after-dark-css"]
-	path = after-dark-css
+	path = shared/after-dark-css
 	url = https://github.com/bryanbraun/after-dark-css

@@ -1,6 +1,6 @@
 # Slightly After Dark
 
-A native macOS screen saver that runs [Bryan Braun](https://github.com/bryanbraun)'s
+A native macOS and Windows screen saver that runs [Bryan Braun](https://github.com/bryanbraun)'s
 recreations of classic After Dark animations
 
 ## Gallery
@@ -57,7 +57,22 @@ saver rather than from a display recording.
 
 <img src="docs/previews/spotlight.gif" width="1024" alt="Spotlight — a moving spotlight revealing a classic Mac desktop">
 
+## Repository layout
+
+```text
+shared/      after-dark-css (submodule), page-presentation.js, asset validation
+macos/       Xcode project, ScreenSaverView wrapper, and macOS test scripts
+windows/     Win32 + WebView2 host, CMake project, and make.ps1
+docs/        Gallery previews
+```
+
+Both hosts render the same pinned `after-dark-css` pages and apply the
+**Object size** and **Motion speed** options with the same
+`shared/page-presentation.js` script.
+
 ## Requirements
+
+macOS:
 
 - macOS 12 or later
 - Xcode with the macOS SDK (building from source only)
@@ -65,7 +80,14 @@ saver rather than from a display recording.
 Release builds are universal and run natively on both Apple silicon and Intel
 Macs.
 
-## Build and install
+Windows:
+
+- Windows 10 or 11 with the Microsoft Edge WebView2 Runtime (included with
+  Windows 11)
+- [Build Tools for Visual Studio 2026](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2026)
+  with the **Desktop development with C++** workload (building from source only)
+
+## Build and install on macOS
 
 Clone with submodules, then build and verify the screen saver:
 
@@ -96,27 +118,62 @@ To remove the locally installed copy, run `make uninstall`.
 Local builds are ad-hoc signed for use on the Mac that built them. A public
 download should be signed with a Developer ID certificate and notarized.
 
+## Build and install on Windows
+
+From PowerShell in a clone with submodules:
+
+```powershell
+.\windows\make.ps1 verify
+.\windows\make.ps1 install
+```
+
+`install` copies the screen saver to
+`%LOCALAPPDATA%\Programs\Slightly After Dark`, selects it, and opens Screen
+Saver Settings. To remove it, run `.\windows\make.ps1 uninstall`.
+
+The build is a single self-contained file:
+
+```text
+Build\windows\x64\Release\Slightly After Dark.scr
+```
+
+The assets are embedded in the `.scr`, so it can be copied anywhere on its own.
+Right-click it and choose **Install** to select it without the script. Builds
+target the host architecture by default; pass `-Architecture ARM64` or
+`-Architecture x64` to choose one.
+
+Unsigned builds may trigger a SmartScreen prompt on other PCs. A public
+download should be Authenticode signed.
+
 ## Options
 
-Open the screen saver's Options panel in System Settings to tune the animation:
+On macOS, open the screen saver's Options panel in System Settings. On
+Windows, choose **Settings** in Screen Saver Settings. Either way you can tune
+the animation:
 
-- **Smoothness** runs the macOS 26 compatibility renderer from 15 to 60 FPS
-  (30 FPS by default). On the modern WebKit renderer, animations automatically
-  follow the display refresh rate and this control is disabled.
+- **Smoothness** (macOS only) runs the macOS 26 compatibility renderer from 15
+  to 60 FPS (30 FPS by default). On the modern WebKit renderer, animations
+  automatically follow the display refresh rate and this control is disabled.
+  Windows always follows the display refresh rate.
 - **Object size** scales foreground elements from 50% to 200% while preserving
   their crisp pixel-art rendering. Full-screen backgrounds and overlays stay at
   the display size.
 - **Motion speed** changes the animation timeline from 50% to 200% independently
   of smoothness.
 - **Show process memory usage** adds a once-per-second resident-memory readout
-  to the upper-left corner. It is off by default.
+  to the upper-left corner. It is off by default. On Windows the readout is the
+  combined working set of the screen saver and its WebView2 processes.
 
-Changes preview immediately. **Done** saves them, while **Cancel** restores the
-settings that were active when the panel opened.
+On macOS, changes preview immediately. **Done** saves them, while **Cancel**
+restores the settings that were active when the panel opened. On Windows,
+**OK** saves them to `HKCU\Software\Slightly After Dark`.
 
 ## Development
 
-The Xcode project has a shared `slightly-after-dark` scheme. Common commands:
+### macOS
+
+The Xcode project lives in `macos/` and has a shared `slightly-after-dark`
+scheme. Run these from the repository root:
 
 ```sh
 make build             # Build a universal Release bundle
@@ -125,7 +182,7 @@ make memory-test       # Measure compatibility renderer memory for 10 minutes
 make clean
 ```
 
-The animations live in the pinned `after-dark-css` submodule. Builds enforce
+The animations live in the pinned `shared/after-dark-css` submodule. Builds enforce
 that revision and validate every referenced runtime asset instead of silently
 producing a blank screen saver. Run `make bootstrap` after updating an existing
 checkout.
@@ -163,6 +220,27 @@ This test does not replace an overnight test in the macOS screen saver host.
 
 For a longer test, run `make memory-test MEMORY_TEST_SECONDS=3600`.
 The `MEMORY_TEST_MAX_GROWTH_MIB` variable sets the permitted growth.
+
+### Windows
+
+The Windows host in `windows/` is a Win32 program that hosts WebView2. A
+`.scr` is an ordinary executable that Windows launches with `/s` (full
+screen), `/p <hwnd>` (the Settings preview), or `/c` (Options). Full-screen
+mode opens one window per monitor and exits on a mouse move, click, or key
+press.
+
+The build fetches a pinned, hash-checked WebView2 SDK from NuGet. It links the
+static WebView2 loader and the static C runtime. CMake embeds every file in
+`shared/after-dark-css/{all,img,fonts}` as a resource, which WebView2 serves
+from the reserved `https://slightly-after-dark.example` origin. Configuration
+fails if a page or stylesheet references an asset that is missing. It also
+fails if the submodule is checked out at a different revision than the one the
+repository records.
+
+`make.ps1 verify` runs the screen saver with `/verify`. This loads every saver
+offscreen and applies 150% object size and 125% motion speed. It then checks
+that the page finished loading, its CSS animations exist and run at the new
+rate, and no asset request failed.
 
 ## Credits and asset licensing
 
