@@ -1,6 +1,7 @@
-PROJECT := slightly-after-dark.xcodeproj
+PROJECT := macos/slightly-after-dark.xcodeproj
 SCHEME := slightly-after-dark
 CONFIGURATION ?= Release
+ASSET_ROOT := shared/after-dark-css
 ASSET_REVISION := 20630dba51d49101dba0b52205400d31be9c0c37
 BUILD_ROOT ?= $(CURDIR)/Build
 DERIVED_DATA := $(BUILD_ROOT)/DerivedData
@@ -16,30 +17,30 @@ MEMORY_TEST_MAX_GROWTH_MIB ?= 32
 
 bootstrap:
 	git submodule update --init --recursive
-	@actual=$$(git -C after-dark-css rev-parse HEAD); \
+	@actual=$$(git -C $(ASSET_ROOT) rev-parse HEAD); \
 	if [ "$$actual" != "$(ASSET_REVISION)" ]; then \
-		git -C after-dark-css cat-file -e "$(ASSET_REVISION)^{commit}" 2>/dev/null || \
-			git -C after-dark-css fetch --quiet origin "$(ASSET_REVISION)"; \
-		git -C after-dark-css switch --quiet --detach "$(ASSET_REVISION)"; \
+		git -C $(ASSET_ROOT) cat-file -e "$(ASSET_REVISION)^{commit}" 2>/dev/null || \
+			git -C $(ASSET_ROOT) fetch --quiet origin "$(ASSET_REVISION)"; \
+		git -C $(ASSET_ROOT) switch --quiet --detach "$(ASSET_REVISION)"; \
 	fi
 	@$(MAKE) ensure-assets
 
 ensure-assets:
-	@if ! git -C after-dark-css rev-parse --verify HEAD >/dev/null 2>&1; then \
-		echo "error: after-dark-css is not initialized; run 'make bootstrap'" >&2; \
+	@if ! git -C $(ASSET_ROOT) rev-parse --verify HEAD >/dev/null 2>&1; then \
+		echo "error: $(ASSET_ROOT) is not initialized; run 'make bootstrap'" >&2; \
 		exit 1; \
 	fi
-	@actual=$$(git -C after-dark-css rev-parse HEAD); \
+	@actual=$$(git -C $(ASSET_ROOT) rev-parse HEAD); \
 	if [ "$$actual" != "$(ASSET_REVISION)" ]; then \
-		echo "error: after-dark-css is at $$actual, expected $(ASSET_REVISION); run 'make bootstrap'" >&2; \
+		echo "error: $(ASSET_ROOT) is at $$actual, expected $(ASSET_REVISION); run 'make bootstrap'" >&2; \
 		exit 1; \
 	fi
 
 validate-assets: ensure-assets
-	/bin/sh scripts/validate-assets.sh after-dark-css
+	/bin/sh shared/scripts/validate-assets.sh $(ASSET_ROOT)
 
 previews: ensure-assets
-	/bin/sh scripts/capture-previews.sh
+	/bin/sh macos/scripts/capture-previews.sh
 
 build: validate-assets
 	xcodebuild \
@@ -52,12 +53,12 @@ build: validate-assets
 		build
 
 verify: build
-	/bin/sh scripts/verify-bundle.sh "$(PRODUCT)"
-	SAD_WEB_RENDERER=modern xcrun swift scripts/runtime-smoke-test.swift "$(PRODUCT)"
-	SAD_WEB_RENDERER=legacy xcrun swift scripts/runtime-smoke-test.swift "$(PRODUCT)"
+	/bin/sh macos/scripts/verify-bundle.sh "$(PRODUCT)"
+	SAD_WEB_RENDERER=modern xcrun swift macos/scripts/runtime-smoke-test.swift "$(PRODUCT)"
+	SAD_WEB_RENDERER=legacy xcrun swift macos/scripts/runtime-smoke-test.swift "$(PRODUCT)"
 
 memory-test: build
-	xcrun swift scripts/memory-soak-test.swift "$(PRODUCT)" "$(MEMORY_TEST_SECONDS)" "$(MEMORY_TEST_MAX_GROWTH_MIB)"
+	xcrun swift macos/scripts/memory-soak-test.swift "$(PRODUCT)" "$(MEMORY_TEST_SECONDS)" "$(MEMORY_TEST_MAX_GROWTH_MIB)"
 
 install: verify
 	/bin/mkdir -p "$(INSTALL_DIRECTORY)"

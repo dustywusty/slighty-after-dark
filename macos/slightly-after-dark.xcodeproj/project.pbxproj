@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C1DA2EA71905BC1B007124F0 /* after-dark-css in Resources */ = {isa = PBXBuildFile; fileRef = C1DA2EA61905BC1B007124F0 /* after-dark-css */; };
+		D500000426A1000000000001 /* page-presentation.js in Resources */ = {isa = PBXBuildFile; fileRef = D500000526A1000000000001 /* page-presentation.js */; };
 		C1FFC34E19037871003E00EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34D19037871003E00EA /* Cocoa.framework */; };
 		C1FFC35019037871003E00EA /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1FFC34F19037871003E00EA /* ScreenSaver.framework */; };
 		C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C1FFC35819037871003E00EA /* InfoPlist.strings */; };
@@ -16,7 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C1DA2EA61905BC1B007124F0 /* after-dark-css */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "after-dark-css"; sourceTree = "<group>"; };
+		C1DA2EA61905BC1B007124F0 /* after-dark-css */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "after-dark-css"; path = "../shared/after-dark-css"; sourceTree = SOURCE_ROOT; };
+		D500000526A1000000000001 /* page-presentation.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "page-presentation.js"; path = "../shared/page-presentation.js"; sourceTree = SOURCE_ROOT; };
 		C1FFC34A19037871003E00EA /* Slightly After Dark.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Slightly After Dark.saver"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1FFC34D19037871003E00EA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		C1FFC34F19037871003E00EA /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
@@ -48,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				C1DA2EA61905BC1B007124F0 /* after-dark-css */,
+				D500000526A1000000000001 /* page-presentation.js */,
 				C1FFC35519037871003E00EA /* slightly-after-dark */,
 				C1FFC34C19037871003E00EA /* Frameworks */,
 				C1FFC34B19037871003E00EA /* Products */,
@@ -167,6 +170,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C1DA2EA71905BC1B007124F0 /* after-dark-css in Resources */,
+				D500000426A1000000000001 /* page-presentation.js in Resources */,
 				C1FFC35A19037871003E00EA /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -183,8 +187,9 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"${SRCROOT}/scripts/validate-assets.sh",
-				"${SRCROOT}/after-dark-css",
+				"${SRCROOT}/../shared/scripts/validate-assets.sh",
+				"${SRCROOT}/../shared/after-dark-css",
+				"${SRCROOT}/../shared/page-presentation.js",
 			);
 			name = "Validate Saver Assets";
 			outputFileListPaths = (
@@ -193,7 +198,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"${SRCROOT}/scripts/validate-assets.sh\" \"${SRCROOT}/after-dark-css\"\n";
+			shellScript = "/bin/sh \"${SRCROOT}/../shared/scripts/validate-assets.sh\" \"${SRCROOT}/../shared/after-dark-css\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

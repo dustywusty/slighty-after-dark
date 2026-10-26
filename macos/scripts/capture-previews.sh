@@ -3,8 +3,8 @@
 set -eu
 
 script_directory=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
-workspace=$(CDPATH= cd -- "$script_directory/.." && pwd)
-asset_root=${1:-"$workspace/after-dark-css"}
+workspace=$(CDPATH= cd -- "$script_directory/../.." && pwd)
+asset_root=${1:-"$workspace/shared/after-dark-css"}
 output_directory=${2:-"$workspace/docs/previews"}
 width=${SAD_PREVIEW_WIDTH:-1024}
 height=${SAD_PREVIEW_HEIGHT:-768}
