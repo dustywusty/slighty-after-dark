@@ -29,19 +29,7 @@ xcrun swift "$script_directory/capture-previews.swift" \
     "$height" \
     "$frames_per_second"
 
-for saver in \
-    flying-toasters \
-    fish \
-    globe \
-    hard-rain \
-    bouncing-ball \
-    warp \
-    messages \
-    messages2 \
-    fade-out \
-    logo \
-    rainstorm \
-    spotlight
+for saver in $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e 's/[[:space:]].*//' "$workspace/shared/savers.txt")
 do
     raw_gif="$temporary_directory/$saver.gif"
     final_gif="$gifs_directory/$saver.gif"

@@ -26,7 +26,7 @@ constexpr wchar_t kStateScript[] =
     L"(function () {"
     L"var data = document.documentElement.dataset;"
     L"var animations = document.getAnimations ? document.getAnimations() : [];"
-    L"return [document.readyState, data.sadObjectScale, data.sadPlaybackSpeed,"
+    L"return [document.readyState, document.visibilityState, data.sadObjectScale, data.sadPlaybackSpeed,"
     L"animations.length, animations.length ? animations[0].playbackRate : 0].join(' ');"
     L"})()";
 
@@ -90,20 +90,24 @@ void SchedulePoll()
     SetTimer(nullptr, 0, kPollIntervalMilliseconds, PollState);
 }
 
-// Expects "complete <scale> <speed> <animationCount> <playbackRate>".
+// Expects "complete visible <scale> <speed> <animationCount> <playbackRate>".
+// A hidden page skips rendering and leaves animations pending, so requiring
+// "visible" keeps this check meaningful for the real screen saver.
 bool StateIsExpected(const std::wstring& state)
 {
     wchar_t readyState[32] = {};
+    wchar_t visibilityState[32] = {};
     int scale = 0;
     int speed = 0;
     int animationCount = 0;
     double playbackRate = 0;
-    if (swscanf_s(state.c_str(), L"\"%31s %d %d %d %lf\"", readyState, 32,
-                  &scale, &speed, &animationCount, &playbackRate) != 5) {
+    if (swscanf_s(state.c_str(), L"\"%31s %31s %d %d %d %lf\"", readyState, 32, visibilityState, 32,
+                  &scale, &speed, &animationCount, &playbackRate) != 6) {
         return false;
     }
     double expectedRate = kTestSpeedPercent / 100.0;
     return std::wstring(readyState) == L"complete"
+        && std::wstring(visibilityState) == L"visible"
         && scale == kTestScalePercent && speed == kTestSpeedPercent
         && animationCount > 0
         && playbackRate > expectedRate - 0.01 && playbackRate < expectedRate + 0.01;
@@ -168,9 +172,11 @@ int RunVerification()
     Verification verification;
     gVerification = &verification;
 
+    // The surface must really be on screen: WebView2 throttles hidden and
+    // occluded windows, which would hide the rendering bugs this checks for.
     WebSurface::Options options;
-    options.style = WS_POPUP;
-    options.extendedStyle = WS_EX_TOOLWINDOW;
+    options.style = WS_POPUP | WS_VISIBLE;
+    options.extendedStyle = WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE;
     options.bounds = {0, 0, kTestWidth, kTestHeight};
     verification.surface = std::make_unique<WebSurface>(options);
     verification.surface->SetNavigationHandler(HandleNavigation);

@@ -137,22 +137,42 @@ static BOOL SADShouldUseLegacyWebView(void)
     return self;
 }
 
+// Read from savers.txt, the list shared with the Windows host; see
+// shared/savers.txt for the format.
 + (NSArray<NSDictionary<NSString *, NSString *> *> *)availableSavers
 {
-    return @[
-        @{ @"title": @"Flying Toasters", @"filename": @"flying-toasters" },
-        @{ @"title": @"Fish", @"filename": @"fish" },
-        @{ @"title": @"Globe", @"filename": @"globe" },
-        @{ @"title": @"Hard Rain", @"filename": @"hard-rain" },
-        @{ @"title": @"Bouncing Ball", @"filename": @"bouncing-ball" },
-        @{ @"title": @"Warp", @"filename": @"warp" },
-        @{ @"title": @"Messages", @"filename": @"messages" },
-        @{ @"title": @"Messages 2", @"filename": @"messages2" },
-        @{ @"title": @"Fade Out", @"filename": @"fade-out" },
-        @{ @"title": @"Logo", @"filename": @"logo" },
-        @{ @"title": @"Rainstorm", @"filename": @"rainstorm" },
-        @{ @"title": @"Spotlight", @"filename": @"spotlight" },
-    ];
+    static NSArray<NSDictionary<NSString *, NSString *> *> *savers;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSURL *listURL = [[NSBundle bundleForClass:self] URLForResource:@"savers" withExtension:@"txt"];
+        NSError *error = nil;
+        NSString *list = listURL != nil
+            ? [NSString stringWithContentsOfURL:listURL encoding:NSUTF8StringEncoding error:&error]
+            : nil;
+        NSMutableArray<NSDictionary<NSString *, NSString *> *> *parsed = [NSMutableArray array];
+        NSCharacterSet *whitespace = NSCharacterSet.whitespaceCharacterSet;
+        for (NSString *rawLine in [list componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]) {
+            NSString *line = [rawLine stringByTrimmingCharactersInSet:whitespace];
+            if (line.length == 0 || [line hasPrefix:@"#"]) {
+                continue;
+            }
+            NSRange separator = [line rangeOfCharacterFromSet:whitespace];
+            if (separator.location == NSNotFound) {
+                continue;
+            }
+            NSString *filename = [line substringToIndex:separator.location];
+            NSString *title = [[line substringFromIndex:NSMaxRange(separator)] stringByTrimmingCharactersInSet:whitespace];
+            [parsed addObject:@{ @"title": title, @"filename": filename }];
+        }
+        if (parsed.count == 0) {
+            // The build validates savers.txt, so this only happens to a damaged bundle.
+            NSLog(@"Slightly After Dark: could not read savers.txt (%@); only Flying Toasters is available.",
+                  error.localizedDescription ?: @"no savers listed");
+            [parsed addObject:@{ @"title": @"Flying Toasters", @"filename": @"flying-toasters" }];
+        }
+        savers = [parsed copy];
+    });
+    return savers;
 }
 
 - (nullable ScreenSaverDefaults *)screenSaverDefaults
@@ -420,20 +440,33 @@ static BOOL SADShouldUseLegacyWebView(void)
 
 // The presentation script is shared with the Windows host; see
 // shared/page-presentation.js.
+// A failed load is logged and retried on the next call instead of being cached,
+// since without it the Object size and Motion speed settings do nothing.
 + (nullable NSString *)pagePresentationFunctionSource
 {
     static NSString *source;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    @synchronized (self) {
+        if (source != nil) {
+            return source;
+        }
         NSURL *scriptURL = [[NSBundle bundleForClass:self] URLForResource:@"page-presentation"
                                                             withExtension:@"js"];
-        if (scriptURL != nil) {
-            source = [NSString stringWithContentsOfURL:scriptURL
-                                              encoding:NSUTF8StringEncoding
-                                                 error:NULL];
+        if (scriptURL == nil) {
+            NSLog(@"Slightly After Dark: page-presentation.js is missing from the bundle; "
+                  @"object size and motion speed settings will not apply.");
+            return nil;
         }
-    });
-    return source;
+        NSError *error = nil;
+        source = [NSString stringWithContentsOfURL:scriptURL
+                                          encoding:NSUTF8StringEncoding
+                                             error:&error];
+        if (source == nil) {
+            NSLog(@"Slightly After Dark: could not read %@: %@; "
+                  @"object size and motion speed settings will not apply.",
+                  scriptURL.path, error.localizedDescription);
+        }
+        return source;
+    }
 }
 
 - (nullable NSString *)pagePresentationSettingsScriptControllingAnimationSpeed:(BOOL)controlsAnimationSpeed

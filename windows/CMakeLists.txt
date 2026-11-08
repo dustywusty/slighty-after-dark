@@ -17,6 +17,7 @@ set(SAD_ASSET_ROOT "${SAD_SHARED_ROOT}/after-dark-css")
 
 include(cmake/WebView2.cmake)
 include(cmake/EmbedAssets.cmake)
+include(cmake/Savers.cmake)
 
 configure_file(src/version.h.in "${CMAKE_CURRENT_BINARY_DIR}/generated/version.h" @ONLY)
 

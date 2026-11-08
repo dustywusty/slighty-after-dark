@@ -21,8 +21,11 @@ constexpr wchar_t kRuntimeMissingMessage[] =
     L"Install it from https://developer.microsoft.com/microsoft-edge/webview2/";
 // Matches the slack Windows' own screen savers give a resting mouse.
 constexpr LONG kMouseMoveThreshold = 8;
-// Previews lay pages out as if on a screen at least this wide.
+// Previews lay pages out as if on a screen this wide, down to WebView2's
+// minimum zoom factor. The ~152 px Settings preview hits that floor and lays
+// out about 608 CSS px wide.
 constexpr double kPreviewLayoutWidth = 1024.0;
+constexpr double kMinimumZoomFactor = 0.25;
 constexpr UINT kMemoryUsageUpdateIntervalMilliseconds = 1000;
 
 struct Session {
@@ -269,7 +272,7 @@ int RunPreview(HWND parent, const Settings& settings)
     options.style = WS_CHILD | WS_VISIBLE;
     options.parent = parent;
     options.bounds = bounds;
-    options.zoomFactor = std::clamp((bounds.right - bounds.left) / kPreviewLayoutWidth, 0.25, 1.0);
+    options.zoomFactor = std::clamp((bounds.right - bounds.left) / kPreviewLayoutWidth, kMinimumZoomFactor, 1.0);
     auto surface = std::make_unique<WebSurface>(options);
     surface->SetDestroyedHandler(Quit);
     session.surfaces.push_back(std::move(surface));

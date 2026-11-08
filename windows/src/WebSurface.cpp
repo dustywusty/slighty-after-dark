@@ -211,7 +211,10 @@ void WebSurface::ServeAsset(ICoreWebView2WebResourceRequestedEventArgs* args)
     std::optional<std::wstring> path = AssetPathForURI(uri);
     std::optional<std::span<const std::byte>> asset = path ? FindAsset(*path) : std::nullopt;
     if (!asset) {
-        ++missingAssetCount_;
+        // The browser asks for /favicon.ico on its own; only page requests count.
+        if (!path || *path != L"favicon.ico") {
+            ++missingAssetCount_;
+        }
         environment_->CreateWebResourceResponse(nullptr, 404, L"Not Found", L"", &response);
     } else {
         ComPtr<IStream> stream;

@@ -52,6 +52,18 @@ function Find-CMake {
     throw 'CMake was not found. Install Build Tools for Visual Studio with "Desktop development with C++".'
 }
 
+# Matches by path: .NET only strips .exe from process names, so the saver
+# runs as 'Slightly After Dark.scr', and a Settings preview keeps it locked.
+function Stop-InstalledSaver {
+    $running = @(Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path -ieq $InstalledProduct })
+    if ($running) {
+        $running | Stop-Process -Force
+        # The file stays locked until the process has actually exited.
+        $running | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
+    }
+}
+
 function Invoke-Checked([string]$FilePath, [string[]]$Arguments) {
     & $FilePath @Arguments
     if ($LASTEXITCODE -ne 0) {
@@ -94,17 +106,21 @@ switch ($Target) {
     }
     'install' {
         Invoke-Verify
-        Get-Process -Name 'Slightly After Dark' -ErrorAction SilentlyContinue | Stop-Process -Force
+        Stop-InstalledSaver
         New-Item -ItemType Directory -Force $InstallDirectory | Out-Null
         Copy-Item $Product $InstalledProduct -Force
         # The same handler Explorer uses for right-click > Install: selects the
-        # screen saver and opens Screen Saver Settings.
-        Start-Process rundll32.exe -ArgumentList "desk.cpl,InstallScreenSaver `"$InstalledProduct`""
+        # screen saver and opens Screen Saver Settings. Explorer passes the path
+        # unquoted (%l); rundll32 hands over the rest of the line, spaces included.
+        Start-Process rundll32.exe -ArgumentList "desk.cpl,InstallScreenSaver $InstalledProduct"
         Write-Host "Installed $InstalledProduct"
     }
     'uninstall' {
-        Get-Process -Name 'Slightly After Dark' -ErrorAction SilentlyContinue | Stop-Process -Force
-        Remove-Item $InstallDirectory -Recurse -Force -ErrorAction SilentlyContinue
+        Stop-InstalledSaver
+        if (Test-Path -LiteralPath $InstallDirectory) {
+            # Fails loudly if the .scr is still locked rather than reporting success.
+            Remove-Item -LiteralPath $InstallDirectory -Recurse -Force
+        }
         # Windows may record the selection as an 8.3 path, so rather than
         # comparing paths, clear it once it no longer points at a file.
         $desktop = 'HKCU:\Control Panel\Desktop'
