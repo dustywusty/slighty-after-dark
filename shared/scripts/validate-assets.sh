@@ -2,24 +2,23 @@
 
 set -eu
 
-asset_root=${1:-after-dark-css}
+asset_root=${1:-"$(dirname "$0")/../after-dark-css"}
 
 # README.md is also a version sentinel: the previously pinned 2014 checkout
 # used README.markdown and lacks later responsive fixes.
 
-for saver in \
-    flying-toasters \
-    fish \
-    globe \
-    hard-rain \
-    bouncing-ball \
-    warp \
-    messages \
-    messages2 \
-    fade-out \
-    logo \
-    rainstorm \
-    spotlight
+saver_list="$(dirname "$0")/../savers.txt"
+if [ ! -f "$saver_list" ]; then
+    echo "error: Missing saver list: $saver_list" >&2
+    exit 1
+fi
+savers=$(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e 's/[[:space:]].*//' "$saver_list")
+if [ -z "$savers" ]; then
+    echo "error: $saver_list lists no savers" >&2
+    exit 1
+fi
+
+for saver in $savers
 do
     path="$asset_root/all/$saver.html"
     if [ ! -f "$path" ]; then

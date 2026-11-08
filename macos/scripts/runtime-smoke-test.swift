@@ -2,21 +2,6 @@ import AppKit
 import ScreenSaver
 import WebKit
 
-private let saverNames = [
-    "flying-toasters",
-    "fish",
-    "globe",
-    "hard-rain",
-    "bouncing-ball",
-    "warp",
-    "messages",
-    "messages2",
-    "fade-out",
-    "logo",
-    "rainstorm",
-    "spotlight",
-]
-
 private let selectedSaverKey = "ScreenSaver"
 private let frameRateKey = "FrameRate"
 private let objectScaleKey = "ObjectScalePercent"
@@ -295,6 +280,20 @@ do {
 guard let bundleIdentifier = bundle.bundleIdentifier,
       let saverType = bundle.principalClass as? ScreenSaverView.Type else {
     fail("Bundle has no ScreenSaverView principal class")
+}
+
+// The bundled copy of shared/savers.txt, the list both platforms read.
+guard let saverListURL = bundle.url(forResource: "savers", withExtension: "txt"),
+      let saverList = try? String(contentsOf: saverListURL, encoding: .utf8) else {
+    fail("Bundle is missing savers.txt")
+}
+let saverNames = saverList
+    .split(whereSeparator: \.isNewline)
+    .map { $0.trimmingCharacters(in: .whitespaces) }
+    .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+    .compactMap { $0.split(whereSeparator: \.isWhitespace).first.map(String.init) }
+guard saverNames.count >= 3 else {
+    fail("savers.txt lists \(saverNames.count) savers; the tests below need at least 3")
 }
 
 let defaultsModule = "\(bundleIdentifier).runtime-tests.\(ProcessInfo.processInfo.processIdentifier)"

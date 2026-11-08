@@ -1,0 +1,15 @@
+# Every screen saver, in menu order, shared by the macOS and Windows builds.
+# Each line is "<page in after-dark-css/all, without .html> <menu title>".
+# macOS stores the selection by position, so append new savers at the end.
+flying-toasters Flying Toasters
+fish Fish
+globe Globe
+hard-rain Hard Rain
+bouncing-ball Bouncing Ball
+warp Warp
+messages Messages
+messages2 Messages 2
+fade-out Fade Out
+logo Logo
+rainstorm Rainstorm
+spotlight Spotlight

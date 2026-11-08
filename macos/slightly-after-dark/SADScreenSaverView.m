@@ -137,22 +137,42 @@ static BOOL SADShouldUseLegacyWebView(void)
     return self;
 }
 
+// Read from savers.txt, the list shared with the Windows host; see
+// shared/savers.txt for the format.
 + (NSArray<NSDictionary<NSString *, NSString *> *> *)availableSavers
 {
-    return @[
-        @{ @"title": @"Flying Toasters", @"filename": @"flying-toasters" },
-        @{ @"title": @"Fish", @"filename": @"fish" },
-        @{ @"title": @"Globe", @"filename": @"globe" },
-        @{ @"title": @"Hard Rain", @"filename": @"hard-rain" },
-        @{ @"title": @"Bouncing Ball", @"filename": @"bouncing-ball" },
-        @{ @"title": @"Warp", @"filename": @"warp" },
-        @{ @"title": @"Messages", @"filename": @"messages" },
-        @{ @"title": @"Messages 2", @"filename": @"messages2" },
-        @{ @"title": @"Fade Out", @"filename": @"fade-out" },
-        @{ @"title": @"Logo", @"filename": @"logo" },
-        @{ @"title": @"Rainstorm", @"filename": @"rainstorm" },
-        @{ @"title": @"Spotlight", @"filename": @"spotlight" },
-    ];
+    static NSArray<NSDictionary<NSString *, NSString *> *> *savers;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSURL *listURL = [[NSBundle bundleForClass:self] URLForResource:@"savers" withExtension:@"txt"];
+        NSError *error = nil;
+        NSString *list = listURL != nil
+            ? [NSString stringWithContentsOfURL:listURL encoding:NSUTF8StringEncoding error:&error]
+            : nil;
+        NSMutableArray<NSDictionary<NSString *, NSString *> *> *parsed = [NSMutableArray array];
+        NSCharacterSet *whitespace = NSCharacterSet.whitespaceCharacterSet;
+        for (NSString *rawLine in [list componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]) {
+            NSString *line = [rawLine stringByTrimmingCharactersInSet:whitespace];
+            if (line.length == 0 || [line hasPrefix:@"#"]) {
+                continue;
+            }
+            NSRange separator = [line rangeOfCharacterFromSet:whitespace];
+            if (separator.location == NSNotFound) {
+                continue;
+            }
+            NSString *filename = [line substringToIndex:separator.location];
+            NSString *title = [[line substringFromIndex:NSMaxRange(separator)] stringByTrimmingCharactersInSet:whitespace];
+            [parsed addObject:@{ @"title": title, @"filename": filename }];
+        }
+        if (parsed.count == 0) {
+            // The build validates savers.txt, so this only happens to a damaged bundle.
+            NSLog(@"Slightly After Dark: could not read savers.txt (%@); only Flying Toasters is available.",
+                  error.localizedDescription ?: @"no savers listed");
+            [parsed addObject:@{ @"title": @"Flying Toasters", @"filename": @"flying-toasters" }];
+        }
+        savers = [parsed copy];
+    });
+    return savers;
 }
 
 - (nullable ScreenSaverDefaults *)screenSaverDefaults
@@ -418,63 +438,46 @@ static BOOL SADShouldUseLegacyWebView(void)
     return [result isKindOfClass:NSString.class] ? result : nil;
 }
 
-- (NSString *)pagePresentationSettingsScriptControllingAnimationSpeed:(BOOL)controlsAnimationSpeed
+// The presentation script is shared with the Windows host; see
+// shared/page-presentation.js.
+// A failed load is logged and retried on the next call instead of being cached,
+// since without it the Object size and Motion speed settings do nothing.
++ (nullable NSString *)pagePresentationFunctionSource
 {
-    return [NSString stringWithFormat:
-        @"(function (scalePercent, speedPercent, controlsSpeed) {"
-         "var animations = document.getAnimations ? document.getAnimations() : [];"
-         "var scaleTargets = window.__sadScaleTargets;"
-         "if (!scaleTargets && innerWidth > 0 && innerHeight > 0) {"
-         "var seen = [];"
-         "scaleTargets = [];"
-         "animations.forEach(function (animation) {"
-         "var target = animation.effect && animation.effect.target;"
-         "if (!target || !target.style || seen.indexOf(target) >= 0) return;"
-         "seen.push(target);"
-         "var forcedForeground = target.matches && target.matches("
-         "'.toaster, .toast, .fish, .bubbles, .r, .message');"
-         "var fullScreenEffect = target === document.body || target === document.documentElement"
-         "|| (target.matches && target.matches('.stars, .rain, .dim, .spotlight'))"
-         "|| (target.offsetWidth >= innerWidth * 0.9"
-         "&& target.offsetHeight >= innerHeight * 0.9);"
-         "if (forcedForeground || !fullScreenEffect) scaleTargets.push(target);"
-         "});"
-         "window.__sadScaleTargets = scaleTargets;"
-         "}"
-         "if (!scaleTargets) scaleTargets = [];"
-         "var scale = scalePercent / 100;"
-         "var supportsIndependentScale = window.CSS && CSS.supports && CSS.supports('scale', '1.25');"
-         "scaleTargets.forEach(function (target) {"
-         "target.style.setProperty('transform-origin', 'center center', 'important');"
-         "target.style.setProperty('image-rendering', 'pixelated', 'important');"
-         "if (supportsIndependentScale) {"
-         "target.style.removeProperty('zoom');"
-         "target.style.setProperty('scale', String(scale), 'important');"
-         "} else {"
-         "target.style.removeProperty('scale');"
-         "target.style.setProperty('zoom', String(scale), 'important');"
-         "}"
-         "});"
-         "var speed = speedPercent / 100;"
-         "if (controlsSpeed) {"
-         "var timedAnimations = document.getAnimations ? document.getAnimations() : animations;"
-         "timedAnimations.forEach(function (animation) {"
-         "var currentTime = animation.currentTime;"
-         "if (animation.startTime !== null && currentTime !== null"
-         "&& !animation.pending && animation.updatePlaybackRate) {"
-         "animation.updatePlaybackRate(speed);"
-         "} else {"
-         "animation.playbackRate = speed;"
-         "if (currentTime !== null) animation.currentTime = currentTime;"
-         "}"
-         "});"
-         "}"
-         "document.documentElement.dataset.sadObjectScale = String(scalePercent);"
-         "document.documentElement.dataset.sadPlaybackSpeed = String(speedPercent);"
-         "document.documentElement.dataset.sadScaleTargetCount = String(scaleTargets.length);"
-         "return JSON.stringify({scale: scalePercent, speed: speedPercent,"
-         "targets: scaleTargets.length});"
-         "})(%ld, %ld, %@)",
+    static NSString *source;
+    @synchronized (self) {
+        if (source != nil) {
+            return source;
+        }
+        NSURL *scriptURL = [[NSBundle bundleForClass:self] URLForResource:@"page-presentation"
+                                                            withExtension:@"js"];
+        if (scriptURL == nil) {
+            NSLog(@"Slightly After Dark: page-presentation.js is missing from the bundle; "
+                  @"object size and motion speed settings will not apply.");
+            return nil;
+        }
+        NSError *error = nil;
+        source = [NSString stringWithContentsOfURL:scriptURL
+                                          encoding:NSUTF8StringEncoding
+                                             error:&error];
+        if (source == nil) {
+            NSLog(@"Slightly After Dark: could not read %@: %@; "
+                  @"object size and motion speed settings will not apply.",
+                  scriptURL.path, error.localizedDescription);
+        }
+        return source;
+    }
+}
+
+- (nullable NSString *)pagePresentationSettingsScriptControllingAnimationSpeed:(BOOL)controlsAnimationSpeed
+{
+    NSString *source = [self.class pagePresentationFunctionSource];
+    if (source == nil) {
+        return nil;
+    }
+
+    return [NSString stringWithFormat:@"%@(%ld, %ld, %@)",
+        source,
         (long)self.objectScalePercent,
         (long)self.playbackSpeedPercent,
         controlsAnimationSpeed ? @"true" : @"false"];
@@ -484,13 +487,17 @@ static BOOL SADShouldUseLegacyWebView(void)
 {
     if (self.modernWebView != nil) {
         NSString *script = [self pagePresentationSettingsScriptControllingAnimationSpeed:YES];
-        [self.modernWebView evaluateJavaScript:script completionHandler:nil];
+        if (script != nil) {
+            [self.modernWebView evaluateJavaScript:script completionHandler:nil];
+        }
         return;
     }
 
     if (self.legacyWebView != nil && self.legacyDocumentReady) {
-        [self evaluateLegacyJavaScript:
-            [self pagePresentationSettingsScriptControllingAnimationSpeed:NO]];
+        NSString *script = [self pagePresentationSettingsScriptControllingAnimationSpeed:NO];
+        if (script != nil) {
+            [self evaluateLegacyJavaScript:script];
+        }
     }
 }
 

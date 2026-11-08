@@ -3,8 +3,8 @@
 set -eu
 
 script_directory=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
-workspace=$(CDPATH= cd -- "$script_directory/.." && pwd)
-asset_root=${1:-"$workspace/after-dark-css"}
+workspace=$(CDPATH= cd -- "$script_directory/../.." && pwd)
+asset_root=${1:-"$workspace/shared/after-dark-css"}
 output_directory=${2:-"$workspace/docs/previews"}
 width=${SAD_PREVIEW_WIDTH:-1024}
 height=${SAD_PREVIEW_HEIGHT:-768}
@@ -29,19 +29,7 @@ xcrun swift "$script_directory/capture-previews.swift" \
     "$height" \
     "$frames_per_second"
 
-for saver in \
-    flying-toasters \
-    fish \
-    globe \
-    hard-rain \
-    bouncing-ball \
-    warp \
-    messages \
-    messages2 \
-    fade-out \
-    logo \
-    rainstorm \
-    spotlight
+for saver in $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e 's/[[:space:]].*//' "$workspace/shared/savers.txt")
 do
     raw_gif="$temporary_directory/$saver.gif"
     final_gif="$gifs_directory/$saver.gif"

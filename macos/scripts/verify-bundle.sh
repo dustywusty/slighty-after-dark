@@ -28,6 +28,14 @@ do
 done
 
 /usr/bin/codesign --verify --deep --strict "$bundle"
-/bin/sh "$(dirname "$0")/validate-assets.sh" "$bundle/Contents/Resources/after-dark-css"
+/bin/sh "$(dirname "$0")/../../shared/scripts/validate-assets.sh" "$bundle/Contents/Resources/after-dark-css"
+
+for resource in page-presentation.js savers.txt
+do
+    if [ ! -f "$bundle/Contents/Resources/$resource" ]; then
+        echo "error: Bundle is missing $resource" >&2
+        exit 1
+    fi
+done
 
 echo "Verified universal, locally signed screen saver bundle: $bundle"
